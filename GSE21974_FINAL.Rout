@@ -1,0 +1,171 @@
+
+R version 2.15.1 (2012-06-22) -- "Roasted Marshmallows"
+Copyright (C) 2012 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> #require(utils)
+> #print(R.Version())
+> #####modified ArrayExpress example from Purvesh
+> 
+> #clear workspace
+> rm(list=ls())
+> 
+> #script for processed expression data from GEO
+> #this data is already quantile normalized
+> 
+> #what array the study used
+> array = "gpl_6480"
+> #download my cleaned-up series matrix from GEO. first column is probeID
+> data = read.delim(header = TRUE, file = "GSE21974_preTreat_expression.txt")
+> expr = data[,2:dim(data)[2]]
+> print(which(is.na(expr)))
+integer(0)
+> 
+> ProbeID = data[,1]
+> 
+> GSMID = substring(colnames(expr), 4)
+> print(GSMID[1:10])
+ [1] "546381" "546383" "546385" "546387" "546389" "546391" "546393" "546395"
+ [9] "546397" "546399"
+> 
+> #looked-already all nonzero values
+> 
+> print(dim(expr))
+[1] 41000    32
+> summary(expr)
+   GSM546381         GSM546383         GSM546385         GSM546387      
+ Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029  
+ 1st Qu.: 2.9374   1st Qu.: 2.9374   1st Qu.: 2.9377   1st Qu.: 2.9380  
+ Median : 5.7191   Median : 5.7184   Median : 5.7191   Median : 5.7191  
+ Mean   : 5.8427   Mean   : 5.8418   Mean   : 5.8428   Mean   : 5.8431  
+ 3rd Qu.: 8.3157   3rd Qu.: 8.3147   3rd Qu.: 8.3157   3rd Qu.: 8.3157  
+ Max.   :18.0053   Max.   :18.0053   Max.   :18.0053   Max.   :18.0053  
+   GSM546389         GSM546391         GSM546393         GSM546395      
+ Min.   : 0.6029   Min.   : 0.6053   Min.   : 0.6029   Min.   : 0.6029  
+ 1st Qu.: 2.9370   1st Qu.: 2.9354   1st Qu.: 2.9370   1st Qu.: 2.9377  
+ Median : 5.7182   Median : 5.7198   Median : 5.7202   Median : 5.7184  
+ Mean   : 5.8425   Mean   : 5.8425   Mean   : 5.8432   Mean   : 5.8424  
+ 3rd Qu.: 8.3160   3rd Qu.: 8.3167   3rd Qu.: 8.3157   3rd Qu.: 8.3147  
+ Max.   :18.0053   Max.   :18.0053   Max.   :18.0053   Max.   :18.0053  
+   GSM546397         GSM546399         GSM546401         GSM546403      
+ Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029  
+ 1st Qu.: 2.9364   1st Qu.: 2.9380   1st Qu.: 2.9380   1st Qu.: 2.9377  
+ Median : 5.7189   Median : 5.7192   Median : 5.7187   Median : 5.7187  
+ Mean   : 5.8429   Mean   : 5.8428   Mean   : 5.8430   Mean   : 5.8423  
+ 3rd Qu.: 8.3160   3rd Qu.: 8.3157   3rd Qu.: 8.3163   3rd Qu.: 8.3145  
+ Max.   :18.0053   Max.   :18.0053   Max.   :18.0053   Max.   :18.0053  
+   GSM546405         GSM546407         GSM546408         GSM546410     
+ Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.606  
+ 1st Qu.: 2.9368   1st Qu.: 2.9377   1st Qu.: 2.9380   1st Qu.: 2.939  
+ Median : 5.7182   Median : 5.7198   Median : 5.7187   Median : 5.718  
+ Mean   : 5.8410   Mean   : 5.8433   Mean   : 5.8425   Mean   : 5.842  
+ 3rd Qu.: 8.3140   3rd Qu.: 8.3157   3rd Qu.: 8.3150   3rd Qu.: 8.312  
+ Max.   :18.0053   Max.   :18.0053   Max.   :18.0053   Max.   :18.005  
+   GSM546412         GSM546413         GSM546415         GSM546417      
+ Min.   : 0.6029   Min.   : 0.6117   Min.   : 0.6029   Min.   : 0.6029  
+ 1st Qu.: 2.9377   1st Qu.: 2.9380   1st Qu.: 2.9361   1st Qu.: 2.9380  
+ Median : 5.7187   Median : 5.7191   Median : 5.7179   Median : 5.7189  
+ Mean   : 5.8422   Mean   : 5.8427   Mean   : 5.8401   Mean   : 5.8428  
+ 3rd Qu.: 8.3154   3rd Qu.: 8.3157   3rd Qu.: 8.3130   3rd Qu.: 8.3157  
+ Max.   :18.0053   Max.   :18.0053   Max.   :17.5673   Max.   :18.0053  
+   GSM546418         GSM546419         GSM546421         GSM546423      
+ Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029  
+ 1st Qu.: 2.9377   1st Qu.: 2.9377   1st Qu.: 2.9229   1st Qu.: 2.9380  
+ Median : 5.7184   Median : 5.7184   Median : 5.7174   Median : 5.7191  
+ Mean   : 5.8422   Mean   : 5.8420   Mean   : 5.8373   Mean   : 5.8429  
+ 3rd Qu.: 8.3150   3rd Qu.: 8.3140   3rd Qu.: 8.3130   3rd Qu.: 8.3154  
+ Max.   :18.0053   Max.   :18.0053   Max.   :17.5673   Max.   :18.0053  
+   GSM546424         GSM546426         GSM546428         GSM546430      
+ Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.7885  
+ 1st Qu.: 2.9380   1st Qu.: 2.9377   1st Qu.: 2.9364   1st Qu.: 2.9377  
+ Median : 5.7200   Median : 5.7187   Median : 5.7179   Median : 5.7184  
+ Mean   : 5.8437   Mean   : 5.8424   Mean   : 5.8398   Mean   : 5.8421  
+ 3rd Qu.: 8.3157   3rd Qu.: 8.3154   3rd Qu.: 8.3130   3rd Qu.: 8.3140  
+ Max.   :18.0053   Max.   :18.0053   Max.   :17.6609   Max.   :18.0053  
+   GSM546432         GSM546433         GSM546435         GSM546437      
+ Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029   Min.   : 0.6029  
+ 1st Qu.: 2.9374   1st Qu.: 2.9383   1st Qu.: 2.9377   1st Qu.: 2.9383  
+ Median : 5.7184   Median : 5.7200   Median : 5.7189   Median : 5.7198  
+ Mean   : 5.8425   Mean   : 5.8434   Mean   : 5.8426   Mean   : 5.8435  
+ 3rd Qu.: 8.3142   3rd Qu.: 8.3157   3rd Qu.: 8.3157   3rd Qu.: 8.3157  
+ Max.   :18.0053   Max.   :18.0053   Max.   :18.0053   Max.   :18.0053  
+> 
+> 
+> #load Purvesh's database functions db_functions.r
+> source(file = "~/global_R_code/db_functions.r")
+> con = connect.db("ywrfc09", "aveelyau05", host="buttelab-db1", dbname="annot_gpl")
+Loading required package: DBI
+Loading required package: RMySQL
+> 
+> #extract genes from your probe list
+> dataMapping = mapProbesToGenes.db(con, ProbeID, map.to="Symbol", gpl.table=array)
+> dbDisconnect(con)
+[1] TRUE
+> 
+> summary(dataMapping)
+      gene      
+ PCDHGC3:   18  
+ ELK2AP :   15  
+ RPL21  :   14  
+ IGKC   :   12  
+ TPM3   :   11  
+ (Other):29579  
+ NA's   :11351  
+> print((dataMapping[ProbeID,"gene"])[1:20])
+A_23_P100001 A_23_P100011 A_23_P100022 A_23_P100056 A_23_P100074 A_23_P100092 
+   "FAM174B"      "AP3S2"       "SV2B"     "RBPMS2"       "AVEN"    "ZSCAN29" 
+A_23_P100103 A_23_P100111 A_23_P100127 A_23_P100133 A_23_P100141 A_23_P100156 
+     "VPS39"        "CHP"      "CASC5"      "ATMIN"       "UNKL"    "TMEM127" 
+A_23_P100177 A_23_P100189 A_23_P100196 A_23_P100203 A_23_P100220 A_23_P100240 
+     "MMP15"       "PRM1"      "USP10"      "HSBP1"      "ESRP2"      "CDH16" 
+ A_23_P10025 A_23_P100263 
+     "NELL2"       "CMIP" 
+> 
+> reporterID = ProbeID
+> 
+> geneSymbol = dataMapping[ProbeID, "gene"]
+>  
+> boxplot(expr, las = 3, main = "GSE21974_GPL6480_pre-treatment") 
+> 
+> setwd("~/expr_breastCancerDatasets/GSE21974")
+> Pheno = read.delim(header = TRUE, file = "GSE21974_preTreat_clinical.txt")
+> 
+> GSE21974_GPL6480= list(expr=expr, GSMID= GSMID, geneSymbol = geneSymbol, 
++ reporterID = reporterID, Pheno = Pheno)
+> 
+> save(GSE21974_GPL6480, file = "GSE21974_GPL6480_FINAL.RData")
+> 
+> #check dim
+> print(length(GSE21974_GPL6480$geneSymbol))
+[1] 41000
+> print(length(GSE21974_GPL6480$reporterID))
+[1] 41000
+> print(length(GSMID))
+[1] 32
+> 
+> #row length of expr should equal row length of gene symbol!!
+> print(dim(GSE21974_GPL6480$expr))                                 
+[1] 41000    32
+> 
+> proc.time()
+   user  system elapsed 
+  4.902   0.234   5.552 

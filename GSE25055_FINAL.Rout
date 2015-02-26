@@ -1,0 +1,397 @@
+
+R version 2.15.0 (2012-03-30)
+Copyright (C) 2012 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> #require(utils)
+> #print(R.Version())
+> #####modified ArrayExpress example from Purvesh
+> 
+> 
+> #clean up data space
+> rm(list=ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 171756  9.2     350000 18.7   350000 18.7
+Vcells 273087  2.1     905753  7.0   852431  6.6
+> 
+> require("Affy")
+Loading required package: Affy
+Warning message:
+In library(package, lib.loc = lib.loc, character.only = TRUE, logical.return = TRUE,  :
+  there is no package called ‘Affy’
+> require(gcrma)
+Loading required package: gcrma
+Loading required package: affy
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following object(s) are masked from ‘package:stats’:
+
+    xtabs
+
+The following object(s) are masked from ‘package:base’:
+
+    anyDuplicated, cbind, colnames, duplicated, eval, Filter, Find,
+    get, intersect, lapply, Map, mapply, mget, order, paste, pmax,
+    pmax.int, pmin, pmin.int, Position, rbind, Reduce, rep.int,
+    rownames, sapply, setdiff, table, tapply, union, unique
+
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: BiocInstaller
+BiocInstaller version 1.4.7, ?biocLite for help
+> 
+> array = "gpl_96"
+> 
+> #removed files that were I-SPY patients (already in GSE22226)
+> 
+> filePath = "~/expr_breastCancerDatasets/GSE25055/patientFiles"
+> fileNames = list.files(filePath)
+> print(length(fileNames))
+[1] 227
+> print(fileNames)
+  [1] "GSM615179_20537_AB01913244_17054.CEL"            
+  [2] "GSM615180_29539_AB01833535_35695.CEL"            
+  [3] "GSM615181_19893_AB01988634_17017.CEL"            
+  [4] "GSM615182_19893_AB01779189_17018.CEL"            
+  [5] "GSM615183_20537_AB01913201_17055.CEL"            
+  [6] "GSM615184_29539_AB01833504_35681.CEL"            
+  [7] "GSM615185_19893_AB01983888_17050.CEL"            
+  [8] "GSM615186_20558_AB01711719_17202.CEL"            
+  [9] "GSM615187_19893_AB01983905_17019.CEL"            
+ [10] "GSM615188_29539_AB01833758_35698.CEL"            
+ [11] "GSM615189_19893_AB01983478_17035.CEL"            
+ [12] "GSM615190_20979_AB01913684_16983.CEL"            
+ [13] "GSM615191_19893_AB01988722_17036.CEL"            
+ [14] "GSM615192_19893_AB02014587_17020.CEL"            
+ [15] "GSM615193_29539_AB01833769_35700.CEL"            
+ [16] "GSM615194_19893_AB01913261_17092.CEL"            
+ [17] "GSM615195_19893_AB01860198_17037.CEL"            
+ [18] "GSM615196_19893_AB01983892_17029.CEL"            
+ [19] "GSM615197_19893_AB01988622_17021.CEL"            
+ [20] "GSM615198_19893_AB01778470_17038.CEL"            
+ [21] "GSM615199_19893_AB01988706_17039.CEL"            
+ [22] "GSM615200_19893_AB01860313_17041.CEL"            
+ [23] "GSM615201_19893_AB01943851_17042.CEL"            
+ [24] "GSM615202_19893_AB01983865_17043.CEL"            
+ [25] "GSM615203_20979_AB01988749_16984.CEL"            
+ [26] "GSM615204_20979_AB01913192_16985.CEL"            
+ [27] "GSM615205_19893_AB01988665_17044.CEL"            
+ [28] "GSM615206_20979_AB01988666_16986.CEL"            
+ [29] "GSM615207_FL824-195.CEL"                         
+ [30] "GSM615208_19893_AB01778504_17045.CEL"            
+ [31] "GSM615209_19893_AB01988711_17032.CEL"            
+ [32] "GSM615210_19893_AB01988641_17024.CEL"            
+ [33] "GSM615211_20558_AB01724707_17204.CEL"            
+ [34] "GSM615212_19893_AB01988742_17046.CEL"            
+ [35] "GSM615213_19893_AB01988743_17025.CEL"            
+ [36] "GSM615214_19893_AB01779182_17047.CEL"            
+ [37] "GSM615215_19893_AB01988712_17033.CEL"            
+ [38] "GSM615216_19893_AB02014530_17059.CEL"            
+ [39] "GSM615217_19893_AB01988746_17026.CEL"            
+ [40] "GSM615218_FL486-219.CEL"                         
+ [41] "GSM615219_19893_AB01913300_16991.CEL"            
+ [42] "GSM615220_19893_AB01988709_17027.CEL"            
+ [43] "GSM615221_19893_AB01988136_17034.CEL"            
+ [44] "GSM615222_19893_AB01923090_16992.CEL"            
+ [45] "GSM615223_FL795-229.CEL"                         
+ [46] "GSM615224_23678_AB01562130_24648.CEL"            
+ [47] "GSM615225_24817_AB02263389_26164.CEL"            
+ [48] "GSM615226_24817_AB02261485_26161.CEL"            
+ [49] "GSM615227_23678_AB01233040_24639.CEL"            
+ [50] "GSM615228_23678_AB01299779_24642.CEL"            
+ [51] "GSM615229_24817_AB02262603_26162.CEL"            
+ [52] "GSM615230_24817_AB02260707_26166.CEL"            
+ [53] "GSM615231_24817_AB02261512_26160.CEL"            
+ [54] "GSM615232_24817_AB02263410_26165.CEL"            
+ [55] "GSM615233_FL644-263.CEL"                         
+ [56] "GSM615234_23678_AB01562113_24644.CEL"            
+ [57] "GSM615235_23678_AB01562218_24640.CEL"            
+ [58] "GSM615236_23678_AB01542230_24645.CEL"            
+ [59] "GSM615237_FL747-281.CEL"                         
+ [60] "GSM615238_24817_AB02263400_26163.CEL"            
+ [61] "GSM615239_FL826-283.CEL"                         
+ [62] "GSM615240_24817_AB02263399_26158.CEL"            
+ [63] "GSM615241_24817_AB02263395_26170.CEL"            
+ [64] "GSM615242_24817_AB02260970_26172.CEL"            
+ [65] "GSM615243_24817_AB02263375_26169.CEL"            
+ [66] "GSM615244_24817_AB02261505_26168.CEL"            
+ [67] "GSM615245_29539_AB01723032_35694.CEL"            
+ [68] "GSM615246_FL645-319.CEL"                         
+ [69] "GSM615247_29539_AB01723009_35679.CEL"            
+ [70] "GSM615248_28998_AB02090243_34890.CEL"            
+ [71] "GSM615249_28998_AB02077268_34965.CEL"            
+ [72] "GSM615250_29539_AB01833931_35690.CEL"            
+ [73] "GSM615251_FL494-339.CEL"                         
+ [74] "GSM615252_FL489-340.CEL"                         
+ [75] "GSM615253_29539_AB01833841_35702.CEL"            
+ [76] "GSM615254_29539_AB01833542_35683.CEL"            
+ [77] "GSM615255_FL490-345.CEL"                         
+ [78] "GSM615256_29539_AB01723041_35689.CEL"            
+ [79] "GSM615257_FL495-355.CEL"                         
+ [80] "GSM615258_29539_AB01723056_35693.CEL"            
+ [81] "GSM615259_29539_AB01833732_35677.CEL"            
+ [82] "GSM615260_FL745-360.CEL"                         
+ [83] "GSM615261_FL746-363.CEL"                         
+ [84] "GSM615262_U133A_80_FL_080_FL256-365_04_18_06.CEL"
+ [85] "GSM615263_FL748-367.CEL"                         
+ [86] "GSM615264_29539_AB01833716_35658.CEL"            
+ [87] "GSM615265_28998_AB02090183_34891.CEL"            
+ [88] "GSM615266_29539_AB01833747_35697.CEL"            
+ [89] "GSM615267_28998_AB02086509_34967.CEL"            
+ [90] "GSM615268_FL556-396.CEL"                         
+ [91] "GSM615269_29539_AB01723039_35684.CEL"            
+ [92] "GSM615270_28998_AB02086473_34898.CEL"            
+ [93] "GSM615271_FL498-411.CEL"                         
+ [94] "GSM615272_FL574-417.CEL"                         
+ [95] "GSM615273_29539_AB01833759_35699.CEL"            
+ [96] "GSM615274_U133A_80_FL_082_FL258-423_04_18_06.CEL"
+ [97] "GSM615275_FL749-425.CEL"                         
+ [98] "GSM615276_FL499-430.CEL"                         
+ [99] "GSM615277_FL557-431.CEL"                         
+[100] "GSM615278_FL575-433.CEL"                         
+[101] "GSM615279_29539_AB01833876_35613.CEL"            
+[102] "GSM615280_29539_AB01723028_35692.CEL"            
+[103] "GSM615281_29539_AB01723044_35687.CEL"            
+[104] "GSM615282_29539_AB01833728_35659.CEL"            
+[105] "GSM615283_29539_AB01833832_35608.CEL"            
+[106] "GSM615284_29539_AB01833699_35605.CEL"            
+[107] "GSM615285_FL750-486.CEL"                         
+[108] "GSM615286_29539_AB01833749_35607.CEL"            
+[109] "GSM615287_FL686-502.CEL"                         
+[110] "GSM615288_29539_AB01833756_35615.CEL"            
+[111] "GSM615289_29539_AB01833780_35612.CEL"            
+[112] "GSM615290_FL646-507.CEL"                         
+[113] "GSM615291_FL491-513.CEL"                         
+[114] "GSM615292_29539_AB01723031_35678.CEL"            
+[115] "GSM615293_29539_AB01723040_35686.CEL"            
+[116] "GSM615294_29539_AB01833821_35682.CEL"            
+[117] "GSM615295_FL500-531.CEL"                         
+[118] "GSM615296_29539_AB01723043_35685.CEL"            
+[119] "GSM615297_FL501-545.CEL"                         
+[120] "GSM615298_FL796-549.CEL"                         
+[121] "GSM615299_FL457-556.CEL"                         
+[122] "GSM615300_FL597-557.CEL"                         
+[123] "GSM615301_FL752-558.CEL"                         
+[124] "GSM615302_FL598-559.CEL"                         
+[125] "GSM615303_FL599-564.CEL"                         
+[126] "GSM615304_U133A_80_FL_083_FL259-565_04_20_06.CEL"
+[127] "GSM615305_FL600-566.CEL"                         
+[128] "GSM615306_U133A_80-FL-107_FL283-569_05_19_06.CEL"
+[129] "GSM615307_U133A_80-FL-206-FL370-571_08_25_06.CEL"
+[130] "GSM615308_U133A_80-FL-111_FL287-577_05_22_06.CEL"
+[131] "GSM615309_FL502-578.CEL"                         
+[132] "GSM615310_U133A_80-FL-112_FL288-580_05_22_06.CEL"
+[133] "GSM615311_U133A_80-FL-113_FL289-581_05_22_06.CEL"
+[134] "GSM615312_FL503-583.CEL"                         
+[135] "GSM615313_FL557-599.CEL"                         
+[136] "GSM615314_FL753-601.CEL"                         
+[137] "GSM615315_U133A_80-FL-118_FL294-603_05_23_06.CEL"
+[138] "GSM615316_FL647-607-2.CEL"                       
+[139] "GSM615317_U133A_80-FL-120_FL296-608_05_23_06.CEL"
+[140] "GSM615318_FL602-610.CEL"                         
+[141] "GSM615319_U133A_80-FL-121_FL297-611_05_23_06.CEL"
+[142] "GSM615320_FL690-612.CEL"                         
+[143] "GSM615321_U133A_80-FL-131-FL299-617_06_09_06.CEL"
+[144] "GSM615322_FL678-619.CEL"                         
+[145] "GSM615323_U133A_80-FL-133-FL301-624_06_09_06.CEL"
+[146] "GSM615324_U133A_80-FL-096_FL272-625_05_11_06.CEL"
+[147] "GSM615325_U133A_80-FL-135-FL303-635_06_15_06.CEL"
+[148] "GSM615326_U133A_80-FL-136-FL304-636_06_15_06.CEL"
+[149] "GSM615327_FL779-639.CEL"                         
+[150] "GSM615328_FL786_642.CEL"                         
+[151] "GSM615329_FL797-643.CEL"                         
+[152] "GSM615330_FL688-647.CEL"                         
+[153] "GSM615331_FL604-651.CEL"                         
+[154] "GSM615332_FL605-652.CEL"                         
+[155] "GSM615333_FL756-657.CEL"                         
+[156] "GSM615334_FL606-658.CEL"                         
+[157] "GSM615335_FL827-659.CEL"                         
+[158] "GSM615336_FL679-661.CEL"                         
+[159] "GSM615337_FL577-662.CEL"                         
+[160] "GSM615338_FL780-665.CEL"                         
+[161] "GSM615339_FL559-666.CEL"                         
+[162] "GSM615340_FL680-668.CEL"                         
+[163] "GSM615341_FL578-669.CEL"                         
+[164] "GSM615342_FL781-670.CEL"                         
+[165] "GSM615343_FL560-671.CEL"                         
+[166] "GSM615344_FL689-673.CEL"                         
+[167] "GSM615345_FL579-675.CEL"                         
+[168] "GSM615346_FL782-677.CEL"                         
+[169] "GSM615347_FL580-679.CEL"                         
+[170] "GSM615348_FL783-681.CEL"                         
+[171] "GSM615349_FL761-682.CEL"                         
+[172] "GSM615350_FL581-683.CEL"                         
+[173] "GSM615351_FL787-685.CEL"                         
+[174] "GSM615352_FL561-690.CEL"                         
+[175] "GSM615353_FL402-691.CEL"                         
+[176] "GSM615354_FL582-692.CEL"                         
+[177] "GSM615355_FL562-693.CEL"                         
+[178] "GSM615356_FL648-695.CEL"                         
+[179] "GSM615357_FL607-696.CEL"                         
+[180] "GSM615358_FL469-706_3_.CEL"                      
+[181] "GSM615359_FL608-709.CEL"                         
+[182] "GSM615360_FL682-710.CEL"                         
+[183] "GSM615361_FL788-714.CEL"                         
+[184] "GSM615362_FL609-717.CEL"                         
+[185] "GSM615363_FL610-718.CEL"                         
+[186] "GSM615364_FL563-722.CEL"                         
+[187] "GSM615365_FL564-723.CEL"                         
+[188] "GSM615366_FL683-725.CEL"                         
+[189] "GSM615367_FL611-728.CEL"                         
+[190] "GSM615368_FL785-729.CEL"                         
+[191] "GSM615369_FL612-732.CEL"                         
+[192] "GSM615370_FL789-734.CEL"                         
+[193] "GSM615371_FL613-735.CEL"                         
+[194] "GSM615372_FL790-739.CEL"                         
+[195] "GSM615373_FL614-744.CEL"                         
+[196] "GSM615374_FL685-746.CEL"                         
+[197] "GSM615375_FL791-750.CEL"                         
+[198] "GSM615376_U133A_80-FL-196-FL360-751_08_18_06.CEL"
+[199] "GSM615377_FL701-753.CEL"                         
+[200] "GSM615378_FL667-757.CEL"                         
+[201] "GSM615379_FL668-758.CEL"                         
+[202] "GSM615380_FL792-763.CEL"                         
+[203] "GSM615381_FL681-765.CEL"                         
+[204] "GSM615382_FL566-766.CEL"                         
+[205] "GSM615383_FL670-767.CEL"                         
+[206] "GSM615384_FL671-768.CEL"                         
+[207] "GSM615385_FL702-771.CEL"                         
+[208] "GSM615386_FL658-774.CEL"                         
+[209] "GSM615387_FL663-779.CEL"                         
+[210] "GSM615388_FL660-781.CEL"                         
+[211] "GSM615389_FL703-782.CEL"                         
+[212] "GSM615390_FL661-783.CEL"                         
+[213] "GSM615391_FL704-784.CEL"                         
+[214] "GSM615392_FL830-791_B_.CEL"                      
+[215] "GSM615393_FL706-792.CEL"                         
+[216] "GSM615394_FL775-794.CEL"                         
+[217] "GSM615395_FL799-795.CEL"                         
+[218] "GSM615396_FL833-802.CEL"                         
+[219] "GSM615397_FL801-805.CEL"                         
+[220] "GSM615398_FL802-806.CEL"                         
+[221] "GSM615399_FL803-810.CEL"                         
+[222] "GSM615400_29539_AB01833935_35648.CEL"            
+[223] "GSM615401_29539_AB01833754_35654.CEL"            
+[224] "GSM615402_29539_AB01833820_35655.CEL"            
+[225] "GSM615403_29539_AB01833522_35706.CEL"            
+[226] "GSM615404_29539_AB01833741_35650.CEL"            
+[227] "GSM615405_29539_AB01723030_35657.CEL"            
+> 
+> #can't specify a path with ReadAffy so change directory
+> setwd("~/expr_breastCancerDatasets/GSE25055/patientFiles")
+> 
+> rawExpressionSet = ReadAffy(filenames=fileNames)
+> names(rawExpressionSet)
+NULL
+> setwd("~/expr_breastCancerDatasets/GSE25055")
+> 
+> probes = read.delim(file = "~/GeneSymbol/GSE25065_GPL96_probes.txt", header = TRUE)
+> print(colnames(probes))
+[1] "ID"
+> #probeSet = probes[,1]
+> #GeneSymbol = probes[,2]
+> 
+> probeSet = featureNames(rawExpressionSet)
+Loading required package: AnnotationDbi
+
+> 
+> Pheno = read.delim(file= "GSE25055_clinical_noISPY.txt", header = TRUE)
+> 
+> #background correct w/ rma, norm and log2 with quantiles using gcrma
+> dataNorm = gcrma(rawExpressionSet)
+Adjusting for optical effect...................................................................................................................................................................................................................................Done.
+Computing affinities.Done.
+Adjusting for non-specific binding...................................................................................................................................................................................................................................Done.
+Normalizing
+Calculating Expression
+> 
+> source(file = "~/global_R_code/db_functions.r")
+> con = connect.db("ywrfc09", "aveelyau05", host="buttelab-db1", dbname="annot_gpl")
+Loading required package: DBI
+Loading required package: RMySQL
+> dataMapping = mapProbesToGenes.db(con, probeSet, map.to="Symbol", 
++ gpl.table=array)
+> dbDisconnect(con)
+[1] TRUE
+> 
+> GeneSymbol = dataMapping[probeSet, "gene"]
+> 
+> #clean up GSMID
+> require("limma")
+Loading required package: limma
+> GSM = strsplit2(fileNames,"_")
+> GSM = GSM[,1]
+> GSM = substring(GSM, 4)
+>  
+> 
+> colnames(exprs(dataNorm)) = GSM
+> 
+> expr = exprs(dataNorm)
+> 
+> GSE25055_GPL96 = list(expr=expr, Pheno=Pheno, GSMID = GSM,ReporterID = 
++ probeSet,GeneSymbol=GeneSymbol)
+> boxplot(GSE25055_GPL96$expr, las=3, main="GSE25055_GPL96")
+>  
+> #manual check on length of keys, expr needs to have this many rows
+> print(length(GSE25055_GPL96$GeneSymbol))
+[1] 22283
+> #manual check on number of patients I have, expr needs to have this many cols
+> print(length(GSE25055_GPL96$GSMID))
+[1] 227
+> #manual check that expr is data frame with genes as rows and sample values as cols 
+> print(dim(GSE25055_GPL96$expr))
+[1] 22283   227
+> 
+> 
+> #check GSMID
+> print(GSE25055_GPL96$GSMID[1:10])
+ [1] "615179" "615180" "615181" "615182" "615183" "615184" "615185" "615186"
+ [9] "615187" "615188"
+> 
+> #check GeneSymbol
+> print(GSE25055_GPL96$GeneSymbol[300:330])
+200772_x_at 200773_x_at   200774_at 200775_s_at 200776_s_at 200777_s_at 
+     "PTMA"      "PTMA"   "FAM120A"    "HNRNPK"      "BZW1"      "BZW1" 
+200778_s_at   200779_at 200780_x_at 200781_s_at   200782_at 200783_s_at 
+    "SEPT2"      "ATF4"      "GNAS"    "RPS15A"     "ANXA5"     "STMN1" 
+200784_s_at 200785_s_at   200786_at 200787_s_at 200788_s_at   200789_at 
+     "LRP1"      "LRP1"     "PSMB7"     "PEA15"     "PEA15"      "ECH1" 
+  200790_at 200791_s_at   200792_at 200793_s_at 200794_x_at   200795_at 
+     "ODC1"    "IQGAP1"     "XRCC6"      "ACO2"    "DAZAP2"   "SPARCL1" 
+200796_s_at 200797_s_at 200798_x_at   200799_at 200800_s_at 200801_x_at 
+     "MCL1"      "MCL1"      "MCL1"    "HSPA1A"    "HSPA1A"      "ACTB" 
+  200802_at 
+     "SARS" 
+> 
+> save(GSE25055_GPL96, file="GSE25055_GPL96.RData")
+> 
+> proc.time()
+   user  system elapsed 
+664.533 236.225 914.158 

@@ -1,0 +1,119 @@
+
+R version 2.15.0 (2012-03-30)
+Copyright (C) 2012 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> #require(utils)
+> #print(R.Version())
+> #####modified ArrayExpress example from Purvesh
+> 
+> rm(list=ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used  (Mb)
+Ncells 171781  9.2     407500 21.8   407500  21.8
+Vcells 272794  2.1   11782172 89.9 14143598 108.0
+> 
+> #example of study that only released processed data, on two arrays
+> 
+> array = "gpl_1708"
+> 
+> #I already downloaded the processed text files via getAE( ) type = "processed"
+> filePath = "~/expr_breastCancerDatasets/GSE22226/patientFiles_GPL1708"
+> 
+> #one file for each patient
+> fileNames = list.files(filePath, full.names = TRUE)
+> shortFileNames = list.files(filePath)
+> 
+> testFile = read.delim(fileNames[1], header = TRUE)
+> 
+> #first column is probe list
+> originalProbeSet = testFile[,1]
+> 
+> 
+> #Purvesh's data mapping didn't work with these probes 
+> #so created my own list from GEO site
+> load("~/GeneSymbol/GPL1708_GeneSymbol.RData")
+> names(annot)
+[1] "ID"                "GI"                "GenBank_Accession"
+[4] "GeneSymbol"        "X"                 "X.1"              
+[7] "X.2"               "X.3"              
+> probeSet = annot$ID
+> GeneSymbol = annot$GeneSymbol
+> 
+> #check GeneSymbol output with some random rows
+> print(GeneSymbol[300:330])
+ [1] NFKBIL2                                ADAMTS1      C1orf125    
+ [6]              UTP3         SMARCAD1                  CBR4        
+[11] IGLV6-57     MPP2         GLCCI1       PIGN         NEDD4       
+[16] LOC100127980              NAV2         LAMP2        FAM175A     
+[21] SHARPIN      SCD5         TESK1        KIAA1370     SORT1       
+[26] INPP5K       NCOR1                     PHB2         USP2        
+[31] MED13L      
+19018 Levels:  10-Mar 10-Sep 11-Mar 11-Sep 12-Sep 14-Sep 15-Sep 1-Dec ... ZZZ3
+> 
+> #loop through and pull out expression values from files
+> expr = matrix(data =NA, nrow = dim(testFile)[1], ncol = length(fileNames))
+> 
+> for (i in 1:length(fileNames)){
++ 
++         tempFile = read.delim(fileNames[i], header = TRUE)
++ 
++ 	#pull out second column with expression values
++ 	expr[,i] = tempFile[,2]
++ 
++ }
+> 
+> #this data is already normalized with MAS 5.0, all and log2.
+> #make positive
+> expr = expr -min(expr, na.rm = TRUE)
+> 
+> #get GSMIDs
+> require("limma")
+Loading required package: limma
+> GSMID = strsplit2(shortFileNames, "_")
+> GSMID = GSMID[,1]
+> GSMID = substring(as.character(GSMID),4)
+> 
+> #double-check
+> print(GSMID[1:10])
+ [1] "508011" "508190" "508191" "508192" "508193" "508194" "508195" "508196"
+ [9] "508197" "508198"
+> 
+> 
+> boxplot(expr, las=3, main = "GSE22226_GPL1708")
+> 
+> 
+> GSE22226_GPL1708 = list(expr=expr, 
++ GeneSymbol=GeneSymbol, ReporterID = probeSet, GSMID=GSMID)
+> save(GSE22226_GPL1708, file = "GSE22226_GPL1708.RData")
+> 
+> print(dim(GSE22226_GPL1708$expr))
+[1] 44290   129
+> print(length(GSE22226_GPL1708$GeneSymbol))
+[1] 44290
+> print(length(GSE22226_GPL1708$GSMID))
+[1] 129
+> 
+> 
+> proc.time()
+   user  system elapsed 
+138.419   2.704 141.641 

@@ -1,0 +1,208 @@
+
+R version 2.15.0 (2012-03-30)
+Copyright (C) 2012 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> #require(utils)
+> #print(R.Version())
+> #####modified ArrayExpress example from Purvesh
+> library("RMySQL")
+Loading required package: DBI
+> 
+> array = "gpl_180"
+> #read in the phenotype (i.e. clinical information) separately from the .srdf file
+> #(every Array Express experiment should have a separate srdf file)
+> #you need to have a file with just the probes in a column in a separate directory.
+> Pheno =  read.delim("E-GEOD-61.sdrf.txt", sep="\t", header=TRUE, dec = ".", quote="\"")
+> probes_full = read.delim("GPL180_A-GEOD-180_clean.adf.txt", sep = "\t", header = TRUE, dec = ".", quote = "\"")
+> print(colnames(probes_full))
+[1] "Reporter.Name"                      "Comment.NAME."                     
+[3] "Reporter.Database.Entry..clone_id." "Comment.GENE_SYM."                 
+[5] "Comment.GENE_NAME."                 "Comment.UNIGENE."                  
+[7] "Reporter.Database.Entry..genbank."  "Comment.SPOT_ID."                  
+[9] "Comment.PREFERRED_NAME."           
+> print(probes_full[1:5,])
+  Reporter.Name Comment.NAME. Reporter.Database.Entry..clone_id.
+1             1         13762                       IMAGE:753234
+2             2         13766                        IMAGE:50794
+3             3         13770                       IMAGE:302190
+4             4         13774                        IMAGE:51408
+5             5         13778                       IMAGE:324901
+  Comment.GENE_SYM.
+1               ZFX
+2            ZNF133
+3               MLL
+4           DSCR1L1
+5             WNT5A
+                                                           Comment.GENE_NAME.
+1                                               zinc finger protein, X-linked
+2                                      zinc finger protein 133 (clone pHZ-13)
+3 myeloid/lymphoid or mixed-lineage leukemia (trithorax (Drosophila) homolog)
+4                                 Down syndrome critical region gene 1-like 1
+5                       wingless-type MMTV integration site family, member 5A
+  Comment.UNIGENE. Reporter.Database.Entry..genbank. Comment.SPOT_ID.
+1             2074                          AA406372                 
+2            78434                            H17047                 
+3           199160                            N77807                 
+4           156007                            H19439                 
+5           152213                            W49672                 
+  Comment.PREFERRED_NAME.
+1                        
+2                        
+3                        
+4                        
+5                        
+> print(Pheno[1,])
+  Source.Name Comment..Sample_description. Comment..Sample_description..1
+1   GSM1927 2      Category: Primary tumor            Subcategory: Breast
+  Comment..Sample_description..2 Comment..Sample_description..3
+1   Scanning Software: ScanAlyze         Software version: 2.44
+  Comment..Sample_description..4 Comment..Sample_source_name.
+1            Lot batch = svcc131                    BC305A-BE
+  Comment..Sample_description..5 Comment..Sample_source_name..1
+1                                                              
+  Characteristics.Organism. Term.Source.REF
+1              Homo sapiens             EFO
+                             Term.Accession.Number      Extract.Name
+1 http://purl.org/obo/owl/NCBITaxon#NCBITaxon_9606 GSM1927 extract 2
+  Material.Type Labeled.Extract.Name Label Hybridization.Name Array.Design.REF
+1     total RNA         GSM1927 LE 2     2            GSM1927       A-GEOD-180
+  Protocol.REF            Normalization.Name  Derived.Array.Data.File
+1    P-GSE61-1 GSM1927_sample_table.txt norm GSM1927_sample_table.txt
+                                                                Comment..Derived.ArrayExpress.FTP.file.
+1 ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/GEOD/E-GEOD-61/E-GEOD-61.processed.1.zip
+> nameCol = 1
+> probes =  read.table("GPL180_genbank_probes.txt", header = TRUE);
+> #dim of probes below should match numProbes pulled from an example patient file!
+> numProbes = dim(probes)[1]
+> #look at all patient files, and extract the GSMIDs:
+> 
+> fileNames =  list.files("~/expr_breastCancerDatasets/GSE61/patientFiles");
+> #check what the file names look like
+> print(fileNames[1])
+[1] "GSM1844_sample_table.txt"
+> numFiles = length(fileNames)
+> print(Pheno[,nameCol])
+  [1] GSM1927 2 GSM1927 1 GSM1926 1 GSM1926 2 GSM1925 2 GSM1925 1 GSM1924 1
+  [8] GSM1924 2 GSM1923 1 GSM1923 2 GSM1922 2 GSM1922 1 GSM1921 1 GSM1921 2
+ [15] GSM1920 2 GSM1920 1 GSM1919 2 GSM1919 1 GSM1918 2 GSM1918 1 GSM1917 1
+ [22] GSM1917 2 GSM1916 1 GSM1916 2 GSM1915 1 GSM1915 2 GSM1914 1 GSM1914 2
+ [29] GSM1913 2 GSM1913 1 GSM1912 1 GSM1912 2 GSM1911 2 GSM1911 1 GSM1910 1
+ [36] GSM1910 2 GSM1909 1 GSM1909 2 GSM1908 1 GSM1908 2 GSM1907 2 GSM1907 1
+ [43] GSM1906 1 GSM1906 2 GSM1905 2 GSM1905 1 GSM1904 1 GSM1904 2 GSM1903 2
+ [50] GSM1903 1 GSM1902 1 GSM1902 2 GSM1901 1 GSM1901 2 GSM1900 1 GSM1900 2
+ [57] GSM1899 1 GSM1899 2 GSM1898 1 GSM1898 2 GSM1897 1 GSM1897 2 GSM1896 2
+ [64] GSM1896 1 GSM1895 2 GSM1895 1 GSM1894 2 GSM1894 1 GSM1893 1 GSM1893 2
+ [71] GSM1892 2 GSM1892 1 GSM1891 1 GSM1891 2 GSM1890 1 GSM1890 2 GSM1889 2
+ [78] GSM1889 1 GSM1888 2 GSM1888 1 GSM1887 1 GSM1887 2 GSM1886 1 GSM1886 2
+ [85] GSM1885 1 GSM1885 2 GSM1884 1 GSM1884 2 GSM1883 1 GSM1883 2 GSM1882 1
+ [92] GSM1882 2 GSM1881 1 GSM1881 2 GSM1880 1 GSM1880 2 GSM1879 1 GSM1879 2
+ [99] GSM1878 1 GSM1878 2 GSM1877 1 GSM1877 2 GSM1876 1 GSM1876 2 GSM1875 1
+[106] GSM1875 2 GSM1874 2 GSM1874 1 GSM1873 1 GSM1873 2 GSM1872 2 GSM1872 1
+[113] GSM1871 2 GSM1871 1 GSM1870 1 GSM1870 2 GSM1869 2 GSM1869 1 GSM1868 2
+[120] GSM1868 1 GSM1867 2 GSM1867 1 GSM1866 1 GSM1866 2 GSM1865 1 GSM1865 2
+[127] GSM1864 1 GSM1864 2 GSM1863 1 GSM1863 2 GSM1862 2 GSM1862 1 GSM1861 2
+[134] GSM1861 1 GSM1860 2 GSM1860 1 GSM1859 1 GSM1859 2 GSM1858 2 GSM1858 1
+[141] GSM1857 1 GSM1857 2 GSM1856 2 GSM1856 1 GSM1855 1 GSM1855 2 GSM1854 2
+[148] GSM1854 1 GSM1853 1 GSM1853 2 GSM1852 2 GSM1852 1 GSM1851 1 GSM1851 2
+[155] GSM1850 2 GSM1850 1 GSM1849 2 GSM1849 1 GSM1848 1 GSM1848 2 GSM1847 1
+[162] GSM1847 2 GSM1846 2 GSM1846 1 GSM1845 2 GSM1845 1 GSM1844 1 GSM1844 2
+168 Levels: GSM1844 1 GSM1844 2 GSM1845 1 GSM1845 2 GSM1846 1 ... GSM1927 2
+> GSM = strsplit(as.character(Pheno[,nameCol]),".txt")
+> GSM = strsplit(as.character(GSM), " ")
+> GSM = strsplit(as.character(GSM), ".CEL")
+> GSM = strsplit(as.character(GSM), ".gpr")
+> GSM = strsplit(as.character(GSM),"_")
+> GSM = substring(GSM,4)
+> print(GSM)
+  [1] "GSM1927\", \"2\")" "GSM1927\", \"1\")" "GSM1926\", \"1\")"
+  [4] "GSM1926\", \"2\")" "GSM1925\", \"2\")" "GSM1925\", \"1\")"
+  [7] "GSM1924\", \"1\")" "GSM1924\", \"2\")" "GSM1923\", \"1\")"
+ [10] "GSM1923\", \"2\")" "GSM1922\", \"2\")" "GSM1922\", \"1\")"
+ [13] "GSM1921\", \"1\")" "GSM1921\", \"2\")" "GSM1920\", \"2\")"
+ [16] "GSM1920\", \"1\")" "GSM1919\", \"2\")" "GSM1919\", \"1\")"
+ [19] "GSM1918\", \"2\")" "GSM1918\", \"1\")" "GSM1917\", \"1\")"
+ [22] "GSM1917\", \"2\")" "GSM1916\", \"1\")" "GSM1916\", \"2\")"
+ [25] "GSM1915\", \"1\")" "GSM1915\", \"2\")" "GSM1914\", \"1\")"
+ [28] "GSM1914\", \"2\")" "GSM1913\", \"2\")" "GSM1913\", \"1\")"
+ [31] "GSM1912\", \"1\")" "GSM1912\", \"2\")" "GSM1911\", \"2\")"
+ [34] "GSM1911\", \"1\")" "GSM1910\", \"1\")" "GSM1910\", \"2\")"
+ [37] "GSM1909\", \"1\")" "GSM1909\", \"2\")" "GSM1908\", \"1\")"
+ [40] "GSM1908\", \"2\")" "GSM1907\", \"2\")" "GSM1907\", \"1\")"
+ [43] "GSM1906\", \"1\")" "GSM1906\", \"2\")" "GSM1905\", \"2\")"
+ [46] "GSM1905\", \"1\")" "GSM1904\", \"1\")" "GSM1904\", \"2\")"
+ [49] "GSM1903\", \"2\")" "GSM1903\", \"1\")" "GSM1902\", \"1\")"
+ [52] "GSM1902\", \"2\")" "GSM1901\", \"1\")" "GSM1901\", \"2\")"
+ [55] "GSM1900\", \"1\")" "GSM1900\", \"2\")" "GSM1899\", \"1\")"
+ [58] "GSM1899\", \"2\")" "GSM1898\", \"1\")" "GSM1898\", \"2\")"
+ [61] "GSM1897\", \"1\")" "GSM1897\", \"2\")" "GSM1896\", \"2\")"
+ [64] "GSM1896\", \"1\")" "GSM1895\", \"2\")" "GSM1895\", \"1\")"
+ [67] "GSM1894\", \"2\")" "GSM1894\", \"1\")" "GSM1893\", \"1\")"
+ [70] "GSM1893\", \"2\")" "GSM1892\", \"2\")" "GSM1892\", \"1\")"
+ [73] "GSM1891\", \"1\")" "GSM1891\", \"2\")" "GSM1890\", \"1\")"
+ [76] "GSM1890\", \"2\")" "GSM1889\", \"2\")" "GSM1889\", \"1\")"
+ [79] "GSM1888\", \"2\")" "GSM1888\", \"1\")" "GSM1887\", \"1\")"
+ [82] "GSM1887\", \"2\")" "GSM1886\", \"1\")" "GSM1886\", \"2\")"
+ [85] "GSM1885\", \"1\")" "GSM1885\", \"2\")" "GSM1884\", \"1\")"
+ [88] "GSM1884\", \"2\")" "GSM1883\", \"1\")" "GSM1883\", \"2\")"
+ [91] "GSM1882\", \"1\")" "GSM1882\", \"2\")" "GSM1881\", \"1\")"
+ [94] "GSM1881\", \"2\")" "GSM1880\", \"1\")" "GSM1880\", \"2\")"
+ [97] "GSM1879\", \"1\")" "GSM1879\", \"2\")" "GSM1878\", \"1\")"
+[100] "GSM1878\", \"2\")" "GSM1877\", \"1\")" "GSM1877\", \"2\")"
+[103] "GSM1876\", \"1\")" "GSM1876\", \"2\")" "GSM1875\", \"1\")"
+[106] "GSM1875\", \"2\")" "GSM1874\", \"2\")" "GSM1874\", \"1\")"
+[109] "GSM1873\", \"1\")" "GSM1873\", \"2\")" "GSM1872\", \"2\")"
+[112] "GSM1872\", \"1\")" "GSM1871\", \"2\")" "GSM1871\", \"1\")"
+[115] "GSM1870\", \"1\")" "GSM1870\", \"2\")" "GSM1869\", \"2\")"
+[118] "GSM1869\", \"1\")" "GSM1868\", \"2\")" "GSM1868\", \"1\")"
+[121] "GSM1867\", \"2\")" "GSM1867\", \"1\")" "GSM1866\", \"1\")"
+[124] "GSM1866\", \"2\")" "GSM1865\", \"1\")" "GSM1865\", \"2\")"
+[127] "GSM1864\", \"1\")" "GSM1864\", \"2\")" "GSM1863\", \"1\")"
+[130] "GSM1863\", \"2\")" "GSM1862\", \"2\")" "GSM1862\", \"1\")"
+[133] "GSM1861\", \"2\")" "GSM1861\", \"1\")" "GSM1860\", \"2\")"
+[136] "GSM1860\", \"1\")" "GSM1859\", \"1\")" "GSM1859\", \"2\")"
+[139] "GSM1858\", \"2\")" "GSM1858\", \"1\")" "GSM1857\", \"1\")"
+[142] "GSM1857\", \"2\")" "GSM1856\", \"2\")" "GSM1856\", \"1\")"
+[145] "GSM1855\", \"1\")" "GSM1855\", \"2\")" "GSM1854\", \"2\")"
+[148] "GSM1854\", \"1\")" "GSM1853\", \"1\")" "GSM1853\", \"2\")"
+[151] "GSM1852\", \"2\")" "GSM1852\", \"1\")" "GSM1851\", \"1\")"
+[154] "GSM1851\", \"2\")" "GSM1850\", \"2\")" "GSM1850\", \"1\")"
+[157] "GSM1849\", \"2\")" "GSM1849\", \"1\")" "GSM1848\", \"1\")"
+[160] "GSM1848\", \"2\")" "GSM1847\", \"1\")" "GSM1847\", \"2\")"
+[163] "GSM1846\", \"2\")" "GSM1846\", \"1\")" "GSM1845\", \"2\")"
+[166] "GSM1845\", \"1\")" "GSM1844\", \"1\")" "GSM1844\", \"2\")"
+> print(length(GSM))
+[1] 168
+> print(numFiles)
+[1] 84
+> print(numProbes)
+[1] 8983
+> #print(length(probes[,1]))
+> #look in a sample patient file. which one is the normalized column?
+> probeCol = 11
+> print(probes[1,probeCol])
+NULL
+> Expr =  matrix(data = NA, nrow=numProbes, ncol=numFiles, dimnames = 
++ list(probes[,probeCol],GSM));
+Error in `[.data.frame`(probes, , probeCol) : undefined columns selected
+Calls: matrix -> [ -> [.data.frame
+Execution halted

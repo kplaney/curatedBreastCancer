@@ -1,0 +1,219 @@
+
+R version 2.15.0 (2012-03-30)
+Copyright (C) 2012 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> #require(utils)
+> #print(R.Version())
+> #####modified ArrayExpress example from Purvesh
+> 
+> #Affy/.CEL files not in AE
+> 
+> #clean workspace
+> rm(list=ls())
+> require("affy")
+Loading required package: affy
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following object(s) are masked from ‘package:stats’:
+
+    xtabs
+
+The following object(s) are masked from ‘package:base’:
+
+    anyDuplicated, cbind, colnames, duplicated, eval, Filter, Find,
+    get, intersect, lapply, Map, mapply, mget, order, paste, pmax,
+    pmax.int, pmin, pmin.int, Position, rbind, Reduce, rep.int,
+    rownames, sapply, setdiff, table, tapply, union, unique
+
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+> require("gcrma")
+Loading required package: gcrma
+Loading required package: BiocInstaller
+BiocInstaller version 1.4.7, ?biocLite for help
+> #script for non AE, affy (.CEL) files.
+> 
+> #file path to separate directory of downloaded .CEL files
+> 
+> filePath = 
++ ("~/expr_breastCancerDatasets/GSE33658/patientFiles")
+> 
+> #what array the study used
+> array = "gpl_570"
+> 
+> fileNames = list.files(filePath, full.names=TRUE)
+> 
+> #we have an Affymetrix array that isn't in Array Express. i.e .CEL files
+> #so use the affy package
+> require("affy")
+> 
+> #odd but just setting the file path in ReadAffy isn't working. do it before.
+> ("~/expr_breastCancerDatasets/GSE33658/patientFiles")
+[1] "~/expr_breastCancerDatasets/GSE33658/patientFiles"
+> print(fileNames)
+ [1] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832390.CEL"
+ [2] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832392.CEL"
+ [3] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832394.CEL"
+ [4] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832396.CEL"
+ [5] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832398.CEL"
+ [6] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832400.CEL"
+ [7] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832402.CEL"
+ [8] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832404.CEL"
+ [9] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832406.CEL"
+[10] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832408.CEL"
+[11] "/home/ywrfc09/expr_breastCancerDatasets/GSE33658/patientFiles/GSM832410.CEL"
+> arrays = ReadAffy(filenames = fileNames)
+> features = featureNames(arrays)
+Loading required package: AnnotationDbi
+
+> print(features[1:10])
+ [1] "1007_s_at" "1053_at"   "117_at"    "121_at"    "1255_g_at" "1294_at"  
+ [7] "1316_at"   "1320_at"   "1405_i_at" "1431_at"  
+> summary(arrays$featureData)
+Length  Class   Mode 
+     0   NULL   NULL 
+> probeSet = features
+> 
+> #background correct and normalize using gcrma( ) like Purvesh does with AE datasets
+> #this uses quantile normalization
+> normArrays = gcrma(arrays, normalize = TRUE)
+Adjusting for optical effect...........Done.
+Computing affinities.Done.
+Adjusting for non-specific binding...........Done.
+Normalizing
+Calculating Expression
+> 
+> #gcrma outputs an ExpressionSet. a class-specific function
+> #use exprs( ) to get a summary expression value for each probe/row
+> expr = exprs(normArrays)
+> print(summary(expr))
+ GSM832390.CEL    GSM832392.CEL    GSM832394.CEL    GSM832396.CEL   
+ Min.   : 2.253   Min.   : 2.253   Min.   : 2.253   Min.   : 2.253  
+ 1st Qu.: 2.253   1st Qu.: 2.253   1st Qu.: 2.253   1st Qu.: 2.253  
+ Median : 2.540   Median : 2.571   Median : 2.562   Median : 2.593  
+ Mean   : 4.424   Mean   : 4.443   Mean   : 4.399   Mean   : 4.439  
+ 3rd Qu.: 6.461   3rd Qu.: 6.513   3rd Qu.: 6.413   3rd Qu.: 6.420  
+ Max.   :16.030   Max.   :15.896   Max.   :15.861   Max.   :15.765  
+ GSM832398.CEL    GSM832400.CEL    GSM832402.CEL    GSM832404.CEL   
+ Min.   : 2.253   Min.   : 2.253   Min.   : 2.253   Min.   : 2.253  
+ 1st Qu.: 2.253   1st Qu.: 2.253   1st Qu.: 2.253   1st Qu.: 2.253  
+ Median : 2.730   Median : 2.567   Median : 2.567   Median : 2.530  
+ Mean   : 4.333   Mean   : 4.416   Mean   : 4.440   Mean   : 4.464  
+ 3rd Qu.: 6.057   3rd Qu.: 6.413   3rd Qu.: 6.430   3rd Qu.: 6.578  
+ Max.   :15.953   Max.   :15.685   Max.   :15.896   Max.   :16.190  
+ GSM832406.CEL    GSM832408.CEL    GSM832410.CEL   
+ Min.   : 2.253   Min.   : 2.253   Min.   : 2.253  
+ 1st Qu.: 2.253   1st Qu.: 2.253   1st Qu.: 2.253  
+ Median : 2.536   Median : 2.564   Median : 2.527  
+ Mean   : 4.424   Mean   : 4.443   Mean   : 4.427  
+ 3rd Qu.: 6.432   3rd Qu.: 6.471   3rd Qu.: 6.471  
+ Max.   :15.937   Max.   :15.980   Max.   :16.066  
+> print(dim(expr))
+[1] 54675    11
+> 
+> 
+> #get your unique GEO GSM IDs
+> require("limma")
+Loading required package: limma
+> fileNamesShort = list.files(path=filePath)
+> GSMID = substring(fileNamesShort, 4)
+> GSMID = strsplit2(as.character(GSMID), ".CEL")
+> print(attributes(GSMID))
+$dim
+[1] 11  1
+
+> print(names(GSMID))
+NULL
+> GSMID = GSMID[,1]
+> print(GSMID[1:10])
+ [1] "832390" "832392" "832394" "832396" "832398" "832400" "832402" "832404"
+ [9] "832406" "832408"
+> 
+> 
+> #load Purvesh's database functions db_functions.r
+> source(file = "~/global_R_code/db_functions.r")
+> con = connect.db("ywrfc09", "aveelyau05", host="buttelab-db1", dbname="annot_gpl")
+Loading required package: DBI
+Loading required package: RMySQL
+> 
+> #extract genes from your probe list
+> dataMapping = mapProbesToGenes.db(con, probeSet, map.to="Symbol", 
++ gpl.table=array)
+> dbDisconnect(con)
+[1] TRUE
+> 
+> summary(dataMapping)
+      gene      
+ IGL@   :   21  
+ IGHG1  :   18  
+ HFE    :   15  
+ NBPF10 :   14  
+ TRA@   :   14  
+ (Other):40953  
+ NA's   :13640  
+> print((dataMapping[probeSet,"gene"])[1:30])
+   1007_s_at      1053_at       117_at       121_at    1255_g_at      1294_at 
+      "DDR1"       "RFC2"      "HSPA6"       "PAX8"     "GUCA1A"       "UBA7" 
+     1316_at      1320_at    1405_i_at      1431_at      1438_at      1487_at 
+      "THRA"     "PTPN21"       "CCL5"     "CYP2E1"      "EPHB3"      "ESRRA" 
+   1494_f_at 1552256_a_at 1552257_a_at   1552258_at   1552261_at   1552263_at 
+    "CYP2A6"     "SCARB1"     "TTLL12" "NCRNA00152"      "WFDC2"      "MAPK1" 
+1552264_a_at   1552266_at   1552269_at   1552271_at 1552272_a_at   1552274_at 
+     "MAPK1"     "ADAM32"    "SPATA17"      "PRR22"      "PRR22"        "PXK" 
+1552275_s_at 1552276_a_at 1552277_a_at 1552278_a_at 1552279_a_at   1552280_at 
+       "PXK"      "VPS18"     "TMEFF1"    "SLC46A1"    "SLC46A1"      "TIMD4" 
+> 
+> boxplot(expr, las = 3, main = "GSE33658_GPL570_pre-treatment") 
+> 
+> setwd("~/expr_breastCancerDatasets/GSE33658")
+> Pheno = read.delim(header = TRUE, file = "GSE33658_preTreat_clinical.txt")
+> 
+> GSE33658_GPL570= list(expr=expr, GSMID= GSMID, ReporterID = 
++ probeSet, GeneSymbol = 
++ dataMapping[probeSet,"gene"], reporterID = probeSet, Pheno = Pheno)
+> 
+> save(GSE33658_GPL570, file = "GSE33658_GPL570-preTreat_FINAL.RData")
+> 
+> #check dim
+> print(length(GSE33658_GPL570$geneSymbol))
+[1] 0
+> print(length(GSE33658_GPL570$reporterID))
+[1] 54675
+> print(length(GSMID))
+[1] 11
+> 
+> #row length of expr should equal row length of gene symbol!!
+> print(dim(GSE33658_GPL570$expr))                                 
+[1] 54675    11
+> 
+> 
+> proc.time()
+   user  system elapsed 
+196.126   4.694 201.614 

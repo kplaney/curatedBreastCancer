@@ -1,0 +1,302 @@
+
+R version 2.15.0 (2012-03-30)
+Copyright (C) 2012 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> #require(utils)
+> #print(R.Version())
+> #####modified ArrayExpress example from Purvesh
+> 
+> require("ArrayExpress")
+Loading required package: ArrayExpress
+Loading required package: Biobase
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following object(s) are masked from ‘package:stats’:
+
+    xtabs
+
+The following object(s) are masked from ‘package:base’:
+
+    anyDuplicated, cbind, colnames, duplicated, eval, Filter, Find,
+    get, intersect, lapply, Map, mapply, mget, order, paste, pmax,
+    pmax.int, pmin, pmin.int, Position, rbind, Reduce, rep.int,
+    rownames, sapply, setdiff, table, tapply, union, unique
+
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+> require(gcrma)
+Loading required package: gcrma
+Loading required package: affy
+Loading required package: BiocInstaller
+BiocInstaller version 1.4.7, ?biocLite for help
+> 
+> array = "gpl_96"
+> rawData = getAE("E-GEOD-2034", type="raw") #download all files from array express for this dataset
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/index.html'
+Content type 'text/html;charset=UTF-8' length unknown
+opened URL
+........
+downloaded 8574 bytes
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/E-GEOD-2034.raw.1.zip'
+Content type 'application/zip' length 154520455 bytes (147.4 Mb)
+opened URL
+===============================================
+downloaded 147.4 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/E-GEOD-2034.raw.2.zip'
+Content type 'application/zip' length 158755298 bytes (151.4 Mb)
+opened URL
+================================================
+downloaded 151.4 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/E-GEOD-2034.raw.3.zip'
+Content type 'application/zip' length 158507165 bytes (151.2 Mb)
+opened URL
+================================================
+downloaded 151.2 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/E-GEOD-2034.raw.4.zip'
+Content type 'application/zip' length 159064311 bytes (151.7 Mb)
+opened URL
+================================================
+downloaded 151.7 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/E-GEOD-2034.raw.5.zip'
+Content type 'application/zip' length 157984502 bytes (150.7 Mb)
+opened URL
+================================================
+downloaded 150.7 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/E-GEOD-2034.raw.6.zip'
+Content type 'application/zip' length 158874963 bytes (151.5 Mb)
+opened URL
+================================================
+downloaded 151.5 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/E-GEOD-2034.raw.7.zip'
+Content type 'application/zip' length 60386427 bytes (57.6 Mb)
+opened URL
+=================================================
+downloaded 57.6 Mb
+
+Read 1 item
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/E-GEOD-2034.sdrf.txt'
+Content type 'text/plain' length 207151 bytes (202 Kb)
+opened URL
+==================================================
+downloaded 202 Kb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/A-AFFY-33/A-AFFY-33.adf.txt'
+Content type 'text/plain' length 2663540 bytes (2.5 Mb)
+opened URL
+==================================================
+downloaded 2.5 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-2034/E-GEOD-2034.idf.txt'
+Content type 'text/plain' length 3331 bytes
+opened URL
+==================================================
+downloaded 3331 bytes
+
+Warning message:
+In if (file.exists(file.path(path, topic))) { :
+  the condition has length > 1 and only the first element will be used
+> rawExpressionSet = magetab2bioc(files = rawData)
+Read 58 items
+> Pheno = pData(phenoData(rawExpressionSet)) #get all the phenodata and save for later, even though don't need it now
+> 
+> dataNorm = gcrma(rawExpressionSet)
+Loading required package: AnnotationDbi
+
+Adjusting for optical effect..............................................................................................................................................................................................................................................................................................Done.
+Computing affinities.Done.
+Adjusting for non-specific binding..............................................................................................................................................................................................................................................................................................Done.
+Normalizing
+Calculating Expression
+> expr = exprs(dataNorm)
+> #plot your data
+> boxplot(exprs(dataNorm), las= 3, main = "GSE2034_GPL96")
+> con = connect.db("ywrfc09", "aveelyau05", host="buttelab-db1", 
++ dbname="annot_gpl")
+Loading required package: DBI
+Loading required package: RMySQL
+> dataMapping = mapProbesToGenes.db(con, rownames(expr), map.to="Symbol", gpl.table=array)
+> dbDisconnect(con)
+[1] TRUE
+> require("limma")
+Loading required package: limma
+> GSM = strsplit2(colnames(exprs(dataNorm)),".CEL")
+> GSM = GSM[,1]
+> #GSM = strsplit(GSM, ".CEL")
+> GSM = substring(GSM,4) 
+> colnames(exprs(dataNorm)) = GSM
+> GSE2034_GPL96 = list(expr=expr, GSMID = 
++ GSM,GeneSymbol=dataMapping[rownames(expr),"gene"], ReporterID = 
++ rownames(exprs(dataNorm)), Pheno = Pheno)
+> 
+> #manual check on length of keys, expr needs to have this many rows
+> length(GSE2034_GPL96$GeneSymbol)
+[1] 22283
+> #manual check on number of patients I have, expr needs to have this many cols
+> length(GSE2034_GPL96$GSMID)
+[1] 286
+> #manual check that expr is data frame with genes as rows and sample values as cols 
+> dim(GSE2034_GPL96$expr)
+[1] 22283   286
+> 
+> #look at pheno - which column is GSMIDs?
+> attributes(Pheno)
+$names
+ [1] "Source.Name"                            
+ [2] "Comment..Sample_description."           
+ [3] "Comment..Sample_source_name."           
+ [4] "Characteristics.Organism."              
+ [5] "Characteristics..DiseaseStaging."       
+ [6] "Characteristics..DiseaseState."         
+ [7] "Characteristics..LymphNodeStatus."      
+ [8] "Characteristics..OrganismPart."         
+ [9] "Characteristics..ClinicalInformation."  
+[10] "Extract.Name"                           
+[11] "Material.Type"                          
+[12] "Labeled.Extract.Name"                   
+[13] "Label"                                  
+[14] "Hybridization.Name"                     
+[15] "Array.Design.REF"                       
+[16] "Array.Data.File"                        
+[17] "Comment..ArrayExpress.FTP.file."        
+[18] "Protocol.REF"                           
+[19] "Normalization.Name"                     
+[20] "Derived.Array.Data.File"                
+[21] "Comment..Derived.ArrayExpress.FTP.file."
+[22] "Factor.Value..TIME."                    
+[23] "Unit..TimeUnit."                        
+[24] "Factor.Value..CLINICAL_INFORMATION."    
+
+$row.names
+  [1] "GSM37062.CEL" "GSM37061.CEL" "GSM37060.CEL" "GSM37059.CEL" "GSM37058.CEL"
+  [6] "GSM37057.CEL" "GSM37056.CEL" "GSM37055.CEL" "GSM37054.CEL" "GSM37053.CEL"
+ [11] "GSM37052.CEL" "GSM37051.CEL" "GSM37050.CEL" "GSM37049.CEL" "GSM37048.CEL"
+ [16] "GSM37047.CEL" "GSM37046.CEL" "GSM37045.CEL" "GSM37044.CEL" "GSM37043.CEL"
+ [21] "GSM37042.CEL" "GSM37041.CEL" "GSM37040.CEL" "GSM37039.CEL" "GSM37038.CEL"
+ [26] "GSM37037.CEL" "GSM37036.CEL" "GSM37035.CEL" "GSM37034.CEL" "GSM37033.CEL"
+ [31] "GSM37032.CEL" "GSM37031.CEL" "GSM37030.CEL" "GSM37029.CEL" "GSM37028.CEL"
+ [36] "GSM37027.CEL" "GSM37026.CEL" "GSM37025.CEL" "GSM37024.CEL" "GSM37023.CEL"
+ [41] "GSM37022.CEL" "GSM37021.CEL" "GSM37020.CEL" "GSM37019.CEL" "GSM37018.CEL"
+ [46] "GSM37017.CEL" "GSM37016.CEL" "GSM37015.CEL" "GSM37014.CEL" "GSM37013.CEL"
+ [51] "GSM37012.CEL" "GSM37011.CEL" "GSM37010.CEL" "GSM37009.CEL" "GSM37008.CEL"
+ [56] "GSM37007.CEL" "GSM37006.CEL" "GSM37005.CEL" "GSM37004.CEL" "GSM37003.CEL"
+ [61] "GSM37002.CEL" "GSM37001.CEL" "GSM37000.CEL" "GSM36999.CEL" "GSM36998.CEL"
+ [66] "GSM36997.CEL" "GSM36996.CEL" "GSM36995.CEL" "GSM36994.CEL" "GSM36993.CEL"
+ [71] "GSM36992.CEL" "GSM36991.CEL" "GSM36990.CEL" "GSM36989.CEL" "GSM36988.CEL"
+ [76] "GSM36987.CEL" "GSM36986.CEL" "GSM36985.CEL" "GSM36984.CEL" "GSM36983.CEL"
+ [81] "GSM36982.CEL" "GSM36981.CEL" "GSM36980.CEL" "GSM36979.CEL" "GSM36978.CEL"
+ [86] "GSM36977.CEL" "GSM36976.CEL" "GSM36975.CEL" "GSM36974.CEL" "GSM36973.CEL"
+ [91] "GSM36972.CEL" "GSM36971.CEL" "GSM36970.CEL" "GSM36969.CEL" "GSM36968.CEL"
+ [96] "GSM36967.CEL" "GSM36966.CEL" "GSM36965.CEL" "GSM36964.CEL" "GSM36963.CEL"
+[101] "GSM36962.CEL" "GSM36961.CEL" "GSM36960.CEL" "GSM36959.CEL" "GSM36958.CEL"
+[106] "GSM36957.CEL" "GSM36956.CEL" "GSM36955.CEL" "GSM36954.CEL" "GSM36953.CEL"
+[111] "GSM36952.CEL" "GSM36951.CEL" "GSM36950.CEL" "GSM36949.CEL" "GSM36948.CEL"
+[116] "GSM36947.CEL" "GSM36946.CEL" "GSM36945.CEL" "GSM36944.CEL" "GSM36943.CEL"
+[121] "GSM36942.CEL" "GSM36941.CEL" "GSM36940.CEL" "GSM36939.CEL" "GSM36938.CEL"
+[126] "GSM36937.CEL" "GSM36936.CEL" "GSM36935.CEL" "GSM36934.CEL" "GSM36933.CEL"
+[131] "GSM36932.CEL" "GSM36931.CEL" "GSM36930.CEL" "GSM36929.CEL" "GSM36928.CEL"
+[136] "GSM36927.CEL" "GSM36926.CEL" "GSM36925.CEL" "GSM36924.CEL" "GSM36923.CEL"
+[141] "GSM36922.CEL" "GSM36921.CEL" "GSM36920.CEL" "GSM36919.CEL" "GSM36918.CEL"
+[146] "GSM36917.CEL" "GSM36916.CEL" "GSM36915.CEL" "GSM36914.CEL" "GSM36913.CEL"
+[151] "GSM36912.CEL" "GSM36911.CEL" "GSM36910.CEL" "GSM36909.CEL" "GSM36908.CEL"
+[156] "GSM36907.CEL" "GSM36906.CEL" "GSM36905.CEL" "GSM36904.CEL" "GSM36903.CEL"
+[161] "GSM36902.CEL" "GSM36901.CEL" "GSM36900.CEL" "GSM36899.CEL" "GSM36898.CEL"
+[166] "GSM36897.CEL" "GSM36896.CEL" "GSM36895.CEL" "GSM36894.CEL" "GSM36893.CEL"
+[171] "GSM36892.CEL" "GSM36891.CEL" "GSM36890.CEL" "GSM36889.CEL" "GSM36888.CEL"
+[176] "GSM36887.CEL" "GSM36886.CEL" "GSM36885.CEL" "GSM36884.CEL" "GSM36883.CEL"
+[181] "GSM36882.CEL" "GSM36881.CEL" "GSM36880.CEL" "GSM36879.CEL" "GSM36878.CEL"
+[186] "GSM36877.CEL" "GSM36876.CEL" "GSM36875.CEL" "GSM36874.CEL" "GSM36873.CEL"
+[191] "GSM36872.CEL" "GSM36871.CEL" "GSM36870.CEL" "GSM36869.CEL" "GSM36868.CEL"
+[196] "GSM36867.CEL" "GSM36866.CEL" "GSM36865.CEL" "GSM36864.CEL" "GSM36863.CEL"
+[201] "GSM36862.CEL" "GSM36861.CEL" "GSM36860.CEL" "GSM36859.CEL" "GSM36858.CEL"
+[206] "GSM36857.CEL" "GSM36856.CEL" "GSM36855.CEL" "GSM36854.CEL" "GSM36853.CEL"
+[211] "GSM36852.CEL" "GSM36851.CEL" "GSM36850.CEL" "GSM36849.CEL" "GSM36848.CEL"
+[216] "GSM36847.CEL" "GSM36846.CEL" "GSM36845.CEL" "GSM36844.CEL" "GSM36843.CEL"
+[221] "GSM36842.CEL" "GSM36841.CEL" "GSM36840.CEL" "GSM36839.CEL" "GSM36838.CEL"
+[226] "GSM36837.CEL" "GSM36836.CEL" "GSM36835.CEL" "GSM36834.CEL" "GSM36833.CEL"
+[231] "GSM36832.CEL" "GSM36831.CEL" "GSM36830.CEL" "GSM36829.CEL" "GSM36828.CEL"
+[236] "GSM36827.CEL" "GSM36826.CEL" "GSM36825.CEL" "GSM36824.CEL" "GSM36823.CEL"
+[241] "GSM36822.CEL" "GSM36821.CEL" "GSM36820.CEL" "GSM36819.CEL" "GSM36818.CEL"
+[246] "GSM36817.CEL" "GSM36816.CEL" "GSM36815.CEL" "GSM36814.CEL" "GSM36813.CEL"
+[251] "GSM36812.CEL" "GSM36811.CEL" "GSM36810.CEL" "GSM36809.CEL" "GSM36808.CEL"
+[256] "GSM36807.CEL" "GSM36806.CEL" "GSM36805.CEL" "GSM36804.CEL" "GSM36803.CEL"
+[261] "GSM36802.CEL" "GSM36801.CEL" "GSM36800.CEL" "GSM36799.CEL" "GSM36798.CEL"
+[266] "GSM36797.CEL" "GSM36796.CEL" "GSM36795.CEL" "GSM36794.CEL" "GSM36793.CEL"
+[271] "GSM36792.CEL" "GSM36791.CEL" "GSM36790.CEL" "GSM36789.CEL" "GSM36788.CEL"
+[276] "GSM36787.CEL" "GSM36786.CEL" "GSM36785.CEL" "GSM36784.CEL" "GSM36783.CEL"
+[281] "GSM36782.CEL" "GSM36781.CEL" "GSM36780.CEL" "GSM36779.CEL" "GSM36778.CEL"
+[286] "GSM36777.CEL"
+
+$class
+[1] "data.frame"
+
+> print(GSE2034_GPL96$GSMID)
+  [1] "37062" "37061" "37060" "37059" "37058" "37057" "37056" "37055" "37054"
+ [10] "37053" "37052" "37051" "37050" "37049" "37048" "37047" "37046" "37045"
+ [19] "37044" "37043" "37042" "37041" "37040" "37039" "37038" "37037" "37036"
+ [28] "37035" "37034" "37033" "37032" "37031" "37030" "37029" "37028" "37027"
+ [37] "37026" "37025" "37024" "37023" "37022" "37021" "37020" "37019" "37018"
+ [46] "37017" "37016" "37015" "37014" "37013" "37012" "37011" "37010" "37009"
+ [55] "37008" "37007" "37006" "37005" "37004" "37003" "37002" "37001" "37000"
+ [64] "36999" "36998" "36997" "36996" "36995" "36994" "36993" "36992" "36991"
+ [73] "36990" "36989" "36988" "36987" "36986" "36985" "36984" "36983" "36982"
+ [82] "36981" "36980" "36979" "36978" "36977" "36976" "36975" "36974" "36973"
+ [91] "36972" "36971" "36970" "36969" "36968" "36967" "36966" "36965" "36964"
+[100] "36963" "36962" "36961" "36960" "36959" "36958" "36957" "36956" "36955"
+[109] "36954" "36953" "36952" "36951" "36950" "36949" "36948" "36947" "36946"
+[118] "36945" "36944" "36943" "36942" "36941" "36940" "36939" "36938" "36937"
+[127] "36936" "36935" "36934" "36933" "36932" "36931" "36930" "36929" "36928"
+[136] "36927" "36926" "36925" "36924" "36923" "36922" "36921" "36920" "36919"
+[145] "36918" "36917" "36916" "36915" "36914" "36913" "36912" "36911" "36910"
+[154] "36909" "36908" "36907" "36906" "36905" "36904" "36903" "36902" "36901"
+[163] "36900" "36899" "36898" "36897" "36896" "36895" "36894" "36893" "36892"
+[172] "36891" "36890" "36889" "36888" "36887" "36886" "36885" "36884" "36883"
+[181] "36882" "36881" "36880" "36879" "36878" "36877" "36876" "36875" "36874"
+[190] "36873" "36872" "36871" "36870" "36869" "36868" "36867" "36866" "36865"
+[199] "36864" "36863" "36862" "36861" "36860" "36859" "36858" "36857" "36856"
+[208] "36855" "36854" "36853" "36852" "36851" "36850" "36849" "36848" "36847"
+[217] "36846" "36845" "36844" "36843" "36842" "36841" "36840" "36839" "36838"
+[226] "36837" "36836" "36835" "36834" "36833" "36832" "36831" "36830" "36829"
+[235] "36828" "36827" "36826" "36825" "36824" "36823" "36822" "36821" "36820"
+[244] "36819" "36818" "36817" "36816" "36815" "36814" "36813" "36812" "36811"
+[253] "36810" "36809" "36808" "36807" "36806" "36805" "36804" "36803" "36802"
+[262] "36801" "36800" "36799" "36798" "36797" "36796" "36795" "36794" "36793"
+[271] "36792" "36791" "36790" "36789" "36788" "36787" "36786" "36785" "36784"
+[280] "36783" "36782" "36781" "36780" "36779" "36778" "36777"
+> save(GSE2034_GPL96, file = "GSE2034_GPL96.RData")
+> 
+> proc.time()
+    user   system  elapsed 
+1293.621  447.073 1931.100 

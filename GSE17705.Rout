@@ -1,0 +1,373 @@
+
+R version 2.15.0 (2012-03-30)
+Copyright (C) 2012 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> #!/usr/bin/env Rscript
+> 
+> #require(utils)
+> #print(R.Version())
+> #####modified ArrayExpress example from Purvesh
+> 
+> rm(list=ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 170114  9.1     350000 18.7   350000 18.7
+Vcells 270383  2.1     905753  7.0   850112  6.5
+> 
+> #standard Array Express script
+> 
+> require("ArrayExpress")
+Loading required package: ArrayExpress
+Loading required package: Biobase
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following object(s) are masked from ‘package:stats’:
+
+    xtabs
+
+The following object(s) are masked from ‘package:base’:
+
+    anyDuplicated, cbind, colnames, duplicated, eval, Filter, Find,
+    get, intersect, lapply, Map, mapply, mget, order, paste, pmax,
+    pmax.int, pmin, pmin.int, Position, rbind, Reduce, rep.int,
+    rownames, sapply, setdiff, table, tapply, union, unique
+
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+> require(gcrma)
+Loading required package: gcrma
+Loading required package: affy
+Loading required package: BiocInstaller
+BiocInstaller version 1.4.7, ?biocLite for help
+> 
+> array = "gpl_96"
+> rawData = getAE("E-GEOD-17705", type="raw") #download all files from 
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/index.html'
+Content type 'text/html;charset=UTF-8' length unknown
+opened URL
+........
+downloaded 8302 bytes
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/E-GEOD-17705.raw.1.zip'
+Content type 'application/zip' length 156877002 bytes (149.6 Mb)
+opened URL
+================================================
+downloaded 149.6 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/E-GEOD-17705.raw.2.zip'
+Content type 'application/zip' length 158984728 bytes (151.6 Mb)
+opened URL
+================================================
+downloaded 151.6 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/E-GEOD-17705.raw.3.zip'
+Content type 'application/zip' length 160867581 bytes (153.4 Mb)
+opened URL
+=================================================
+downloaded 153.4 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/E-GEOD-17705.raw.4.zip'
+Content type 'application/zip' length 159333600 bytes (152.0 Mb)
+opened URL
+=================================================
+downloaded 152.0 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/E-GEOD-17705.raw.5.zip'
+Content type 'application/zip' length 154721290 bytes (147.6 Mb)
+opened URL
+===============================================
+downloaded 147.6 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/E-GEOD-17705.raw.6.zip'
+Content type 'application/zip' length 151071541 bytes (144.1 Mb)
+opened URL
+==================================================
+downloaded 144.1 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/E-GEOD-17705.raw.7.zip'
+Content type 'application/zip' length 97718247 bytes (93.2 Mb)
+opened URL
+================================================
+downloaded 93.2 Mb
+
+Read 1 item
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/E-GEOD-17705.sdrf.txt'
+Content type 'text/plain' length 203413 bytes (198 Kb)
+opened URL
+==================================================
+downloaded 198 Kb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/A-AFFY-33/A-AFFY-33.adf.txt'
+Content type 'text/plain' length 2663540 bytes (2.5 Mb)
+opened URL
+==================================================
+downloaded 2.5 Mb
+
+trying URL 'http://www.ebi.ac.uk/microarray-as/ae/files/E-GEOD-17705/E-GEOD-17705.idf.txt'
+Content type 'text/plain' length 4510 bytes
+opened URL
+==================================================
+downloaded 4510 bytes
+
+Warning message:
+In if (file.exists(file.path(path, topic))) { :
+  the condition has length > 1 and only the first element will be used
+> rawExpressionSet = magetab2bioc(files = rawData)
+Read 57 items
+> Pheno = pData(phenoData(rawExpressionSet)) #get all the phenodata and save for later, even though don't need it now
+> 
+> dataNorm = gcrma(rawExpressionSet)
+Loading required package: AnnotationDbi
+
+Adjusting for optical effect..........................................................................................................................................................................................................................................................................................................Done.
+Computing affinities.Done.
+Adjusting for non-specific binding..........................................................................................................................................................................................................................................................................................................Done.
+Normalizing
+Calculating Expression
+> 
+> 
+> #get Gene Symbols using Purvesh's code
+> source("~/global_R_code/db_functions.r")
+> con = connect.db("ywrfc09", "aveelyau05", host="buttelab-db1", dbname="annot_gpl")
+Loading required package: DBI
+Loading required package: RMySQL
+> dataMapping = mapProbesToGenes.db(con, rownames(exprs(dataNorm)), map.to="Symbol", gpl.table=array)
+> dbDisconnect(con)
+[1] TRUE
+> 
+> require("limma")
+Loading required package: limma
+> GSM = strsplit2(colnames(exprs(dataNorm)),".CEL")
+> GSM = GSM[,1]
+> GSM = strsplit2(GSM, "_")
+> GSM = GSM[,1]
+> GSM = substring(GSM,4) 
+> 
+> #check GSM
+> print(GSM[1:10])
+ [1] "441921" "441920" "441919" "441918" "441917" "441916" "441915" "441914"
+ [9] "441913" "441912"
+> 
+> colnames(exprs(dataNorm)) = GSM
+> 
+> GSE17705_GPL96 = list(expr=exprs(dataNorm), GSMID = 
++ GSM,GeneSymbol=dataMapping[rownames(exprs(dataNorm)),"gene"])
+> 
+> #boxplot not working....
+> boxplot(GSE17705_GPL96$expr, las=3, main="GSE17705_GPL96") 
+> #manual check on length of keys, expr needs to have this many rows
+> length(GSE17705_GPL96$keys)
+[1] 0
+> #manual check on number of patients I have, expr needs to have this many cols
+> length(GSE17705_GPL96$GSMID)
+[1] 298
+> #manual check that expr is data frame with genes as rows and sample values as cols 
+> dim(GSE17705_GPL96$expr)
+[1] 22283   298
+> 
+> print(GSE17705_GPL96$GSMID)
+  [1] "441921" "441920" "441919" "441918" "441917" "441916" "441915" "441914"
+  [9] "441913" "441912" "441911" "441910" "441909" "441908" "441907" "441906"
+ [17] "441905" "441904" "441903" "441902" "441901" "441900" "441899" "441898"
+ [25] "441897" "441896" "441895" "441894" "441893" "441892" "441891" "441890"
+ [33] "441889" "441888" "441887" "441886" "441885" "441884" "441883" "441882"
+ [41] "441881" "441880" "441879" "441878" "441877" "441876" "441875" "441874"
+ [49] "441873" "441872" "441871" "441870" "441869" "441868" "441867" "441866"
+ [57] "441865" "441864" "441863" "441862" "441861" "441860" "441859" "441858"
+ [65] "441857" "441856" "441855" "441854" "441853" "441852" "441851" "441850"
+ [73] "441849" "441848" "441847" "441846" "441845" "441844" "441843" "441842"
+ [81] "441841" "441840" "441839" "441838" "441837" "441836" "441835" "441834"
+ [89] "441833" "441832" "441831" "441830" "441829" "441828" "441827" "441826"
+ [97] "441825" "441824" "441823" "441822" "441821" "441820" "441819" "441818"
+[105] "441817" "441816" "441815" "441814" "441813" "441812" "441811" "441810"
+[113] "441809" "441808" "441807" "441806" "441805" "441804" "441803" "441802"
+[121] "441801" "441800" "441799" "441798" "441797" "441796" "441795" "441794"
+[129] "441793" "441792" "441791" "441790" "441789" "441788" "441787" "441786"
+[137] "441785" "441784" "441783" "441782" "441781" "441780" "441779" "441778"
+[145] "441777" "441776" "441775" "441774" "441773" "441772" "441771" "441770"
+[153] "441769" "441768" "441767" "441766" "441765" "441764" "441763" "441762"
+[161] "441761" "441760" "441759" "441758" "441757" "441756" "441755" "441754"
+[169] "441753" "441752" "441751" "441750" "441749" "441748" "441747" "441746"
+[177] "441745" "441744" "441743" "441742" "441741" "441740" "441739" "441738"
+[185] "441737" "441736" "441735" "441734" "441733" "441732" "441731" "441730"
+[193] "441729" "441728" "441727" "441726" "441725" "441724" "441723" "441722"
+[201] "441721" "441720" "441719" "441718" "441717" "441716" "441715" "441714"
+[209] "441713" "441712" "441711" "441710" "441709" "441708" "441707" "441706"
+[217] "441705" "441704" "441703" "441702" "441701" "441700" "441699" "441698"
+[225] "441697" "441696" "441695" "441694" "441693" "441692" "441691" "441690"
+[233] "441689" "441688" "441687" "441686" "441685" "441684" "441683" "441682"
+[241] "441681" "441680" "441679" "441678" "441677" "441676" "441675" "441674"
+[249] "441673" "441672" "441671" "441670" "441669" "441668" "441667" "441666"
+[257] "441665" "441664" "441663" "441662" "441661" "441660" "441659" "441658"
+[265] "441657" "441656" "441655" "441654" "441653" "441652" "441651" "441650"
+[273] "441649" "441648" "441647" "441646" "441645" "441644" "441643" "441642"
+[281] "441641" "441640" "441639" "441638" "441637" "441636" "441635" "441634"
+[289] "441633" "441632" "441631" "441630" "441629" "441628" "441627" "441626"
+[297] "441625" "441624"
+> 
+> #look at pheno - which column is GSMIDs?
+> attributes(Pheno)
+$names
+ [1] "Source.Name"                                                              
+ [2] "Comment..Sample_description."                                             
+ [3] "Comment..Sample_source_name."                                             
+ [4] "Characteristics.Organism."                                                
+ [5] "Term.Source.REF"                                                          
+ [6] "Term.Accession.Number"                                                    
+ [7] "Characteristics.distant.relapse..1.dr..0.censored.."                      
+ [8] "Characteristics.endocrine.therapy."                                       
+ [9] "Characteristics.estrogen.receptor..er..status."                           
+[10] "Characteristics.event.time..years.."                                      
+[11] "Characteristics.nodal.status..0.negative..1.positive..na.not.applicable.."
+[12] "Characteristics.patient.id."                                              
+[13] "Term.Source.REF.1"                                                        
+[14] "Term.Accession.Number.1"                                                  
+[15] "Characteristics.profiling.lab."                                           
+[16] "Characteristics.tissue."                                                  
+[17] "Protocol.REF"                                                             
+[18] "Term.Source.REF.2"                                                        
+[19] "Extract.Name"                                                             
+[20] "Material.Type"                                                            
+[21] "Protocol.REF.1"                                                           
+[22] "Term.Source.REF.3"                                                        
+[23] "Labeled.Extract.Name"                                                     
+[24] "Label"                                                                    
+[25] "Protocol.REF.2"                                                           
+[26] "Term.Source.REF.4"                                                        
+[27] "Hybridization.Name"                                                       
+[28] "Array.Design.REF"                                                         
+[29] "Term.Source.REF.5"                                                        
+[30] "Protocol.REF.3"                                                           
+[31] "Term.Source.REF.6"                                                        
+[32] "Protocol.REF.4"                                                           
+[33] "Term.Source.REF.7"                                                        
+[34] "Array.Data.File"                                                          
+[35] "Comment..ArrayExpress.FTP.file."                                          
+[36] "Protocol.REF.5"                                                           
+[37] "Term.Source.REF.8"                                                        
+[38] "Normalization.Name"                                                       
+[39] "Derived.Array.Data.File"                                                  
+[40] "Comment..Derived.ArrayExpress.FTP.file."                                  
+[41] "FactorValue..DISTANT.RELAPSE..1.DR..0.CENSORED.."                         
+[42] "FactorValue..EVENT.TIME..YEARS.."                                         
+[43] "FactorValue..NODAL.STATUS..0.NEGATIVE..1.POSITIVE..NA.NOT.APPLICABLE.."   
+[44] "FactorValue..PATIENT.ID."                                                 
+[45] "Term.Source.REF.9"                                                        
+[46] "Term.Accession.Number.2"                                                  
+[47] "FactorValue..PROFILING.LAB."                                              
+
+$row.names
+  [1] "GSM441921.CEL" "GSM441920.CEL" "GSM441919.CEL" "GSM441918.CEL"
+  [5] "GSM441917.CEL" "GSM441916.CEL" "GSM441915.CEL" "GSM441914.CEL"
+  [9] "GSM441913.CEL" "GSM441912.CEL" "GSM441911.CEL" "GSM441910.CEL"
+ [13] "GSM441909.CEL" "GSM441908.CEL" "GSM441907.CEL" "GSM441906.CEL"
+ [17] "GSM441905.CEL" "GSM441904.CEL" "GSM441903.CEL" "GSM441902.CEL"
+ [21] "GSM441901.CEL" "GSM441900.CEL" "GSM441899.CEL" "GSM441898.CEL"
+ [25] "GSM441897.CEL" "GSM441896.CEL" "GSM441895.CEL" "GSM441894.CEL"
+ [29] "GSM441893.CEL" "GSM441892.CEL" "GSM441891.CEL" "GSM441890.CEL"
+ [33] "GSM441889.CEL" "GSM441888.CEL" "GSM441887.CEL" "GSM441886.CEL"
+ [37] "GSM441885.CEL" "GSM441884.CEL" "GSM441883.CEL" "GSM441882.CEL"
+ [41] "GSM441881.CEL" "GSM441880.CEL" "GSM441879.CEL" "GSM441878.CEL"
+ [45] "GSM441877.CEL" "GSM441876.CEL" "GSM441875.CEL" "GSM441874.CEL"
+ [49] "GSM441873.CEL" "GSM441872.CEL" "GSM441871.CEL" "GSM441870.CEL"
+ [53] "GSM441869.CEL" "GSM441868.CEL" "GSM441867.CEL" "GSM441866.CEL"
+ [57] "GSM441865.CEL" "GSM441864.CEL" "GSM441863.CEL" "GSM441862.CEL"
+ [61] "GSM441861.CEL" "GSM441860.CEL" "GSM441859.CEL" "GSM441858.CEL"
+ [65] "GSM441857.CEL" "GSM441856.CEL" "GSM441855.CEL" "GSM441854.CEL"
+ [69] "GSM441853.CEL" "GSM441852.CEL" "GSM441851.CEL" "GSM441850.CEL"
+ [73] "GSM441849.CEL" "GSM441848.CEL" "GSM441847.CEL" "GSM441846.CEL"
+ [77] "GSM441845.CEL" "GSM441844.CEL" "GSM441843.CEL" "GSM441842.CEL"
+ [81] "GSM441841.CEL" "GSM441840.CEL" "GSM441839.CEL" "GSM441838.CEL"
+ [85] "GSM441837.CEL" "GSM441836.CEL" "GSM441835.CEL" "GSM441834.CEL"
+ [89] "GSM441833.CEL" "GSM441832.CEL" "GSM441831.CEL" "GSM441830.CEL"
+ [93] "GSM441829.CEL" "GSM441828.CEL" "GSM441827.CEL" "GSM441826.CEL"
+ [97] "GSM441825.CEL" "GSM441824.CEL" "GSM441823.CEL" "GSM441822.CEL"
+[101] "GSM441821.CEL" "GSM441820.CEL" "GSM441819.CEL" "GSM441818.CEL"
+[105] "GSM441817.CEL" "GSM441816.CEL" "GSM441815.CEL" "GSM441814.CEL"
+[109] "GSM441813.CEL" "GSM441812.CEL" "GSM441811.CEL" "GSM441810.CEL"
+[113] "GSM441809.CEL" "GSM441808.CEL" "GSM441807.CEL" "GSM441806.CEL"
+[117] "GSM441805.CEL" "GSM441804.CEL" "GSM441803.CEL" "GSM441802.CEL"
+[121] "GSM441801.CEL" "GSM441800.CEL" "GSM441799.CEL" "GSM441798.CEL"
+[125] "GSM441797.CEL" "GSM441796.CEL" "GSM441795.CEL" "GSM441794.CEL"
+[129] "GSM441793.CEL" "GSM441792.CEL" "GSM441791.CEL" "GSM441790.CEL"
+[133] "GSM441789.CEL" "GSM441788.CEL" "GSM441787.CEL" "GSM441786.CEL"
+[137] "GSM441785.CEL" "GSM441784.CEL" "GSM441783.CEL" "GSM441782.CEL"
+[141] "GSM441781.CEL" "GSM441780.CEL" "GSM441779.CEL" "GSM441778.CEL"
+[145] "GSM441777.CEL" "GSM441776.CEL" "GSM441775.CEL" "GSM441774.CEL"
+[149] "GSM441773.CEL" "GSM441772.CEL" "GSM441771.CEL" "GSM441770.CEL"
+[153] "GSM441769.CEL" "GSM441768.CEL" "GSM441767.CEL" "GSM441766.CEL"
+[157] "GSM441765.CEL" "GSM441764.CEL" "GSM441763.CEL" "GSM441762.CEL"
+[161] "GSM441761.CEL" "GSM441760.CEL" "GSM441759.CEL" "GSM441758.CEL"
+[165] "GSM441757.CEL" "GSM441756.CEL" "GSM441755.CEL" "GSM441754.CEL"
+[169] "GSM441753.CEL" "GSM441752.CEL" "GSM441751.CEL" "GSM441750.CEL"
+[173] "GSM441749.CEL" "GSM441748.CEL" "GSM441747.CEL" "GSM441746.CEL"
+[177] "GSM441745.CEL" "GSM441744.CEL" "GSM441743.CEL" "GSM441742.CEL"
+[181] "GSM441741.CEL" "GSM441740.CEL" "GSM441739.CEL" "GSM441738.CEL"
+[185] "GSM441737.CEL" "GSM441736.CEL" "GSM441735.CEL" "GSM441734.CEL"
+[189] "GSM441733.CEL" "GSM441732.CEL" "GSM441731.CEL" "GSM441730.CEL"
+[193] "GSM441729.CEL" "GSM441728.CEL" "GSM441727.CEL" "GSM441726.CEL"
+[197] "GSM441725.CEL" "GSM441724.CEL" "GSM441723.CEL" "GSM441722.CEL"
+[201] "GSM441721.CEL" "GSM441720.CEL" "GSM441719.CEL" "GSM441718.CEL"
+[205] "GSM441717.CEL" "GSM441716.CEL" "GSM441715.CEL" "GSM441714.CEL"
+[209] "GSM441713.CEL" "GSM441712.CEL" "GSM441711.CEL" "GSM441710.CEL"
+[213] "GSM441709.CEL" "GSM441708.CEL" "GSM441707.CEL" "GSM441706.CEL"
+[217] "GSM441705.CEL" "GSM441704.CEL" "GSM441703.CEL" "GSM441702.CEL"
+[221] "GSM441701.CEL" "GSM441700.CEL" "GSM441699.CEL" "GSM441698.CEL"
+[225] "GSM441697.CEL" "GSM441696.CEL" "GSM441695.CEL" "GSM441694.CEL"
+[229] "GSM441693.CEL" "GSM441692.CEL" "GSM441691.CEL" "GSM441690.CEL"
+[233] "GSM441689.CEL" "GSM441688.CEL" "GSM441687.CEL" "GSM441686.CEL"
+[237] "GSM441685.CEL" "GSM441684.CEL" "GSM441683.CEL" "GSM441682.CEL"
+[241] "GSM441681.CEL" "GSM441680.CEL" "GSM441679.CEL" "GSM441678.CEL"
+[245] "GSM441677.CEL" "GSM441676.CEL" "GSM441675.CEL" "GSM441674.CEL"
+[249] "GSM441673.CEL" "GSM441672.CEL" "GSM441671.CEL" "GSM441670.CEL"
+[253] "GSM441669.CEL" "GSM441668.CEL" "GSM441667.CEL" "GSM441666.CEL"
+[257] "GSM441665.CEL" "GSM441664.CEL" "GSM441663.CEL" "GSM441662.CEL"
+[261] "GSM441661.CEL" "GSM441660.CEL" "GSM441659.CEL" "GSM441658.CEL"
+[265] "GSM441657.CEL" "GSM441656.CEL" "GSM441655.CEL" "GSM441654.CEL"
+[269] "GSM441653.CEL" "GSM441652.CEL" "GSM441651.CEL" "GSM441650.CEL"
+[273] "GSM441649.CEL" "GSM441648.CEL" "GSM441647.CEL" "GSM441646.CEL"
+[277] "GSM441645.CEL" "GSM441644.CEL" "GSM441643.CEL" "GSM441642.CEL"
+[281] "GSM441641.CEL" "GSM441640.CEL" "GSM441639.CEL" "GSM441638.CEL"
+[285] "GSM441637.CEL" "GSM441636.CEL" "GSM441635.CEL" "GSM441634.CEL"
+[289] "GSM441633.CEL" "GSM441632.CEL" "GSM441631.CEL" "GSM441630.CEL"
+[293] "GSM441629.CEL" "GSM441628.CEL" "GSM441627.CEL" "GSM441626.CEL"
+[297] "GSM441625.CEL" "GSM441624.CEL"
+
+$class
+[1] "data.frame"
+
+> 
+> print(GSE17705_GPL96$GeneSymbol[1:20])
+1007_s_at   1053_at    117_at    121_at 1255_g_at   1294_at   1316_at   1320_at 
+   "DDR1"    "RFC2"   "HSPA6"    "PAX8"  "GUCA1A"    "UBA7"    "THRA"  "PTPN21" 
+1405_i_at   1431_at   1438_at   1487_at 1494_f_at 1598_g_at 160020_at   1729_at 
+   "CCL5"  "CYP2E1"   "EPHB3"   "ESRRA"  "CYP2A6"    "GAS6"   "MMP14"   "TRADD" 
+  1773_at    177_at    179_at   1861_at 
+   "FNTB"    "PLD1" "PMS2P11"     "BAD" 
+> save(GSE17705_GPL96, Pheno, file="GSE17705_GPL96.RData")
+> 
+> proc.time()
+    user   system  elapsed 
+ 979.090  411.051 1605.160 
