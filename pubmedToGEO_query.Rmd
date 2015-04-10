@@ -1,0 +1,71 @@
+pubmed to GEO
+========================================================
+
+I developed a tool to search Pubmed abstracts, link them to GEO, and then download the expression data and annotated Pubmed/GEO abstracts.
+
+The first step is finding the correct studies.  I allow for narrowng down your search both via Pubmed, and then via GEO. The function pubmed_query in pubmed_query_.R accordingly has user-defined function inputs for these cases. If you don't want to input a certain keyword, just let the default run, which omits this keyword. You do, however, have to put in at least one MeSH or text term, other else the program will stop (that would be too inspecific of a query.) For multiple words (or phrases) in one category, use a comma to separate the words (no spaces.) Just enter phrases as you normally would, spaces and all - I handle that processing (see the MeSHterms example.)
+
+Meshterms lets you input specific MeSH terms.  You must research these ahead of time - I don't do semantic normalization. It's good to keep this a litle broad - as not all of the Pubmed hits will have linked GEO datasets.  
+```{r}
+MeSHterms <- "humans,breast neoplasms,Drug Therapy, Disease-Free Survival,gene expression";
+noSplit <- TRUE;
+```
+
+The noSplit just means you're only searching the whole MeSH term - otherwise, "Drug Therapy", would mean articles that match "Drug", "Therapy", or "Drug Therapy" would be returned - rather defeating the purpose of searching by a specific MeSH phrase! 
+
+
+You can also just search by general text phrase. This includes all words and numbers in the title, abstract, other abstract, MeSH terms, MeSH Subheadings, Publication Types, Substance Names, Personal Name as Subject
+
+```{r}
+textWords <- "";
+```
+
+And it's a good idea (well, nice) to provide your email to NCBI as you programmatically access this information. This is a required input in my function.
+
+```{r}
+email <- "ywrfc09@stanford.edu"
+```
+
+Then you can specify the date range used to limit a search result by the date specified by datetype. These two parameters (mindate, maxdate) must be used together to specify an arbitrary date range. The general date format is YYYY/MM/DD, and these variants are also allowed: YYYY, YYYY/MM. Just days: DD. I use date data type 'edat' (hard coded in), the Entrez data, as that has a greater chance of working across all entrez databases (here, Pubmed and GDS i.e. GEO).
+
+```{r}
+mindate <-"2005/01/01";
+maxdate <- "2013/09/05";
+```
+
+#last N days...
+reldate <- ""
+
+Technically, I allow you to start with a database other than pubmed - but my code always then links to GEO.
+
+```{r}
+db <- "pubmed"
+```
+
+The total number of UIDs (unique IDs) from the retrieved set to be shown in the XML output is by default=20. I allow you to increase this.. By default, ESearch only includes the first 
+
+```{r}
+#up to a maximum of 100,000 records.
+retmax <- 100;
+```
+
+
+The previous qualifiers were for the initial Pubmed query. You can also further refine the GEO datasets found linked to any of these Pubmed results. I'd recommend going broad in the Pubmed query to make sure you actually grab some GEO datasets, and then be more specific in these GEO queries.
+
+```{r}
+#for GEO
+organism <- "homo sapiens"
+dataSetType <- "expression profiling by array";
+platformTechnologyType <- "";
+sampleType <- "";
+MeSHGEO <- "";
+platformTechnology <- "";
+#SINCE this date.
+publicationDate <- "";
+#good way to ensure that there are raw files: cel. and perhaps outcomes: .txt
+supplementaryFiles <- "cel,txt";
+```
+
+Then you can finally run the function! 
+After you've selected certain GSE datasets, you can feed this into the eSetMetaData function to annotate both the corresponding Pubmed and GEO abstracts, and download the GEO data.
+

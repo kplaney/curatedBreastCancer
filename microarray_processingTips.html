@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Public Microarray Dataset Processing in R</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+<!-- MathJax scripts -->
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+</head>
+
+<body>
+<p>Katie Planey, Stanford Biomedical Informatics
+Butte Lab 2012</p>
+
+<h1>Public Microarray Dataset Processing in R</h1>
+
+<p>Many recent publicly available microarray datasets are available via Array Express, which means there are usually nice pre-packaged functions to process the data quickly. However, for earlier datasets, you often need to roll up your sleeves and try various tactics. Even if a dataset is listed in Array Express, don&#39;t assume it&#39;ll run smoothly until you compile your code. </p>
+
+<p><strong>General Processing Tips</strong></p>
+
+<ul>
+<li><p><strong>Know what&#39;s literally inside the files</strong>
+No matter what the file extension, you can always open up the file with a standard text reader like nano or emacs (I certainly got hung up for awhile and viewed the files as &ldquo;black boxes&rdquo;). Familiarize yourself with what&#39;s in a typical patient file for each dataset - it&#39;s really just text files with expression values and some array information!</p></li>
+<li><p><strong>Know the number of zip files</strong>
+In Array Express, larger studies often have multiple zip files. Every once in awhile, depending on your R version, it may only download the first zip file (and won&#39;t give you an error - you&#39;ll jsut blissfully analyze less patients). It never hurts to double-check everything a funciton like getAE() is supposedly downloading.</p></li>
+<li><p><strong>Don&#39;t trust just one source if there&#39;s many</strong>
+Always look at both the GEO and Array Express listings for a study (Array Express can recognize the GEO GSE study ID). GEO usually covers additional, older datasets that Array Express doesn&#39;t. Sometimes, the data is packaged much nicer on one site, and it&#39;s not always Array Express (particulalrly if you&#39;re trying to get raw data). The same goes for clinical parameters, often included in the Array Express .srdf files, and in GEO, the Series Matrix or a separate clinical file.</p></li>
+<li><p><strong>Understand the types of data arrays can output</strong>
+Array datasets usually have one, or two, channels. One&#39;s a little easier - you immediately know which one to pull! Affymetrix has one-channel arrays. Two have your experimental/desired expression value, and a background/reference value (say a general sample widely used from a lab).  The two channel arrays are what the Cy3/Cy5 and green/red labels refer to.  Some reserachers use a ratio of the two values, but for our pipelines, you usually want to double-check which channel is the <em>experimental</em> channel (pretty easy to tell in GEO by just clicking on a specific patient array, i.e. GSM ID) and then just use the log2 mean value of only that one channel value.  The background channel is helpful for, well, background correction, <em>before</em> you calculate the experimental mean value, but that&#39;ll come later.</p></li>
+<li><p><strong>Raw vs. Processed</strong>
+Processed just means the researchers already qunatified say mean log2 expression values for you; i.e. it&#39;s like handing off an excel sheet with all the data you already need. But be really careful that the quantification is exactly the method you intend to use for all your datasets; sometimes it&#39;s hard to verify this.  The GEO Series Matrix and the Array Express IDF files can help provide clues (and sometimes it&#39;s even in the GEO paragraph summary that first pops up for a study).</p></li>
+<li><p><strong>Don&#39;t assume data isn&#39;t duplicated</strong>
+Yes, GSM IDs are never duplicated in GEO, BUT that specific patient may have multiple samples in GEO (like if they had two biopies), OR the samples may have been used by multiple studies and been re-listed. If it&#39;s a well-known, widely used clinical trial, be careful!  It&#39;s often helpful to look at the clinical parameters and compare the <em>original</em> study ID, i.e. what ID the study used. It&#39;s rare, but I&#39;ve definitely had to exclude patients I knew I had just analyzed under a different GEO GSE ID.  Remember, these are just data files; it&#39;s not that hard to publish the data twice under a different ID! Sometimes, a later study is sneaky and only re-publishes already publicly available data (I assume to avoid having to release their own new data).  You&#39;ll notice that the number of patients in a GEO dataset is less than the number of patients used in a published analysis, and this may be the reason.</p></li>
+<li><p><strong>Helpful R packages</strong>
+Array Express, Affy, and Limma are all great packages. Think of them as increasing in order of flexiblity (and thus the broader range of microarrays they can cover). Array Express is for Affymetrix platforms in Array Express (just search online with the GEO GSE ID to check), Affy is for any type of Affymetrix file, and Limma can handle a whole host of array types. Both the Limma R reference guide and user manual (two separate documents) are helpful to step through.</p></li>
+<li><p><strong>Array probe IDs vs. actual gene names</strong>
+No, the row names you see in an array data file usually are NOT the actual genes (heck, sometimes they&#39;re just numbers!) But usually if you click on the array in GEO, you can see the Gene Symbol or other various gene annotations (yes, there are few to add to standards confusions).  It&#39;s <em>always</em> a good idea to do a gut-check; so the &ldquo;prescribed&rdquo; array IDs and number of rows is listed out by the arrya company, but did the study do something sketchy? Are there a ton of extra blank rows, or less? Don&#39;t assume you can do a linear mapping. If the number of rows is equal, you&#39;re probably safe (and if you&#39;re using Purvesh&#39;s mapping code, it probably won&#39;t work if there&#39;s something not aligning anyways).  You can always just write a script to skip over blank files and match up the array probe ID with a gene symbol.  I haven&#39;t seen a study that actually scrambles the <em>order</em> of the array probes (it might just slip in extra ones), but it can&#39;t hurt to eyeball the first few rows in a sample patient file&hellip;.but don&#39;t go overboard and check all like 10,000 rows!</p></li>
+<li><p><strong>Gene Symbol extraction</strong>
+Expression values are cool, but even better if you can attach them to a gene name :)  This can be a hairy process, however - if your expression rows are a different lenght than your list of Gene Symbols (or UIDs, etc) it may mean the study tacked on extraneous rows, or cutoff say the first few rows of the array list that just had unnecessary values like &ldquo;Darkcorner&rdquo; (you&#39;ll see this in General Electric/GE arrays). So opening up the files, both for the array from GEO, and from your outputted expression object, never hurts.</p>
+
+<p><strong>TIP:</strong> if you extract Gene Symbols on your own (not from Purvesh&#39;s database), be it pulling the Gene Symbols from a text file in GEO or from the names() in your R expression object (see #2 below), check that there aren&#39;t multiple gene symbols on one line! I found this quite a bit. If it&#39;s a text file, first open it up and see what character is separating the multiple symbols; usually it&#39;s &ldquo;/&rdquo;. CLose the file, then re-read it into excel as a tab-delimited file. As you click through the open tab-delimited file set-up, just add your extra delimeter in the options box. Sure, you can do text parsing in R but I find this to be quicker, and you can really see the whole file for more error-checking. It&#39;s easy to just deleted the extraneous probes now, as they&#39;re put on separate columns. Usually taking the first symbol is fine.</p></li>
+</ul>
+
+<p><strong>1. Purvesh&#39;s database</strong>
+If you have a list of standard probe/reporter IDs (that has the same number of rows as your expression matrix!), and it&#39;s a common GPL array, you can first try Purvesh&#39;s mapping function via his db_functions.r script (just email him or ask me/Linda for it.) Tip: you need to get user access to the Butte mySQL database first! Email IT staff for this.</p>
+
+<pre><code>
+#identify the GEO array name: &quot;GPL_&quot; + number
+
+array = &quot;GPL_96#
+#load Purvesh&#39;s database functions &quot;db_functions.r&quot;&quot; whever you stored the file
+source(file = &quot;~/global_R_code/db_functions.r&quot;)
+
+#open up Purvesh&#39;s mySQL database connection on the BUTTE cluster.
+con = connect.db(&quot;YOUR SUNETID&quot;, &quot;YOUR PASSWORD&quot;, host=&quot;buttelab-db1&quot;, dbname=&quot;annot_gpl&quot;)
+
+#extract genes from your probe list - probe list must be already made
+#oftentimes, it just the rownames from your expression object (print out to check!)
+
+dataMapping = mapProbesToGenes.db(con, rownames(exprs(normalizedExpressionData)), map.to=&quot;Symbol&quot;,gpl.table=array)
+
+#disconnect from database server
+dbDisconnect(con)
+
+#look at the summary: does it make sense? Oftentimes, you&#39;ll get NA values, which OK - 
+#if you open up many array tables in GEO, there&#39;s often rows with no probe or gene name.
+#(as long as you don&#39;t get like &gt;50% NA values, which may mean the mapping didn&#39;t work)
+summary(dataMapping)
+
+#check out some of the gene names as a dummy-check
+print((dataMapping[rownames(exprs(normalizedExpressionData)),&quot;gene&quot;])[1:20])
+
+</code></pre>
+
+<p><strong>Directly from your expression objects</strong>
+The limma package creates an RList object for 2-channel arrays, and an EList object for 1-channel arrays. If you just poke around using names( ), oftentimes you&#39;ll find your Gene Symbols are already included. But always print a few lines, because sometimes the list is still NULL!</p>
+
+<pre><code>#EList example from GSE21794
+#see all of the names listed out - what data can we pull to make our lives easier?
+names(MA.p)
+[1] &quot;E&quot;       &quot;targets&quot; &quot;genes&quot;   &quot;source&quot;
+names(MA.p$targets)
+[1] &quot;FileName&quot;
+names(MA.p$source)
+NULL
+names(MA.p$genes)
+ [1] &quot;Row&quot;            &quot;Col&quot;            &quot;Start&quot;          &quot;Sequence&quot;
+ [5] &quot;ProbeUID&quot;       &quot;ControlType&quot;    &quot;ProbeName&quot;      &quot;GeneName&quot;
+ [9] &quot;SystematicName&quot; &quot;Description&quot;
+
+</code></pre>
+
+<p><strong>Gene Symbol Extraction from GEO array file</strong>
+Follow the general tips, and just export your column of Gene Symbols as a text file. Actually pretty harmless if the file is the same length as your expression object. It never hurts to see if your expression object has rownames( ) that you can match up to some index in the array file.  Even checking 20 rows is a pretty good bet you&#39;re fine, given how most clinical trials don&#39;t mess with the arrays themselves. For example, I opened up GSE18378&#39;s series matrix and could quickly tell the Probe IDs were in a totally different order than those in the array list, GPL6480. So I stuck with Purvesh&#39;s database, that links the Probe IDs one by one, so it&#39;s fine the order is different than in the published array file.</p>
+
+<p>Also, if the probes aren&#39;t in the same order as your expression set, the R function match() is helpful, or  in:</p>
+
+<pre><code>
+match(x, table, nomatch = NA_integer_, incomparables = NULL)
+
+#or: look for values in x that are in table.
+x %in% table
+
+
+</code></pre>
+
+<p>It can link up the indices in one dataset (i.e. your GEO probes) with the actual probe order in your expression set</p>
+
+<p><strong>Multiple arrays in one study</strong>
+Treat these as separate studies - you can download the data via getAE(), ReadAffy(), or read.maimages() and then just put the patients from separate arrays in separate directories to pull from (usually dealing with processed data). And careful - even if you download multiple files from online, it doesn&#39;t mean the patients were correctly parsed by array type - it seems pretty random most of the time (and in GEO, they list all the patients together, and just note multiple arrays were used unless you open up patient-specific GSM files.)</p>
+
+<p><strong>Processed Data</strong>
+Usually this is straight forward, but look in GEO in a specific patient GSM file or in the IDF file in Array Express to see what the researchers actually did. You&#39;ll want normalized (quantile is best), all nonzero, log2 data, so you still may need to complete some of these steps yourself. Make sure that if it&#39;s 2-channel arrays, they give you the ratio (foreground/background), and hopefully they background corrected.</p>
+
+<p>The only processing label that wasn&#39;t immediately intuitive to me that I came across was MAS 5.0 - this is for affymetrix arrays. More information can be found at <a href="http://discover.nci.nih.gov/microarrayAnalysis/Affymetrix.Preprocessing.jsp">http://discover.nci.nih.gov/microarrayAnalysis/Affymetrix.Preprocessing.jsp</a>, but it basically entails:</p>
+
+<ul>
+<li>background correction by subtraction (a standard method, although I used &ldquo;normexp&rdquo; in Limma when doing it on my own)</li>
+<li>normalizes (in a way similar to scaling by linear regression)</li>
+</ul>
+
+<p>Usually the data is in log2 form also (but this is much easier to check).  There is of course a bit of a trust level here, however, because I&#39;m assuming Affymetrix and MAS 5.0 software allows for different parameters and method variations.</p>
+
+<p><strong>Raw Data</strong>
+Raw code means the code isn&#39;t available in a nice clean format (i.e., mean expression in log2 values), or you don&#39;t exactly trust the author&#39;s pre-processing methods and the raw data is still available to re-do the analysis yourself. Usually, the <em>content</em> of the raw files is determined by the scanner (Agilent, etc.). By content I mean 2 or 1-channel data, if it gives you spotted values, etc.  </p>
+
+<p>The <em>format</em>, which is often more crucial to get your code running, is usually determined by the analysis software used. For example, Affymetrix provides both arrays and a specific data format, and GenePix is just a software program used on various arrays.  It basically comes down to text scanning through these formatted files, and most R packages need help designating the format, either impliciting becuase you&#39;re using a format-specific function like Affy() for Affymetrix arrays, or with keywords like read.maimages(source = &ldquo;genepix&rdquo;) in Limma.</p>
+
+<p>Raw code can come in several different types of files:</p>
+
+<p><strong>.CEL (raw) files</strong>
+If you see this file format, it means that the data came from an Affymetrix platform, a brand of single-channel arrays.  Read the link below for more information:
+<a href="http://www.stat.lsa.umich.edu/%7Ekshedden/Courses/Stat545/Notes/AffxFileFormats/cel.html">http://www.stat.lsa.umich.edu/~kshedden/Courses/Stat545/Notes/AffxFileFormats/cel.html</a></p>
+
+<p>It&#39;s helpful to understand how these files are organized because if you end up getting error messages with higher-level R Bioconductor packages like Array Express or Affy, it&#39;s usually because the study coordinators didn&#39;t actually publish a .CEL file with interpretable headers (hooray! Tons of extra work for you). In version 3 .CEL files, the section names are:</p>
+
+<ul>
+<li>CEL
+contains the version number of the file</li>
+<li>HEADER
+contains header information like number of columns (totalX), rows (totalY), etc.</li>
+<li>INTENSITY
+the actual intensity/expression information (it may not be in &ldquo;summary&rdquo; form and so for repreated probe wells, contain multiple values)</li>
+<li>MASKS</li>
+<li>OUTLIERS</li>
+<li>MODIFIED</li>
+</ul>
+
+<p>Version 4 is more just like one spreadsheet with all of the info.</p>
+
+<p><strong>raw .CEL files in Array Express</strong>
+Nice! The easiest case.  These are rare, but GSE2034 fell into this category. See GSE2034.R for the full code.  You can use the Array Express package to download the datasets, create an expression object with magetab2bioc(), and normalize and log2 them with gcrma(). Then create your expression object (i.e. expression values in rows, patients in columns) with exprs( )</p>
+
+<pre><code>require(&quot;ArrayExpress&quot;)
+require(gcrma)
+
+#download all files from array express for this dataset. 
+#GSE2034 = E-GEOD-2034 in Arrray Express
+
+rawData = getAE(&quot;E-GEOD-2034&quot;, type=&quot;raw&quot;) 
+rawExpressionSet = magetab2bioc(files = rawData)
+dataNorm = gcrma(rawExpressionSet)
+
+#retrieve expression data
+expr = exprs(dataNorm)
+
+#aand you have your log2 mean expression values for each patient/sample!
+
+</code></pre>
+
+<p>You&#39;ll want to print out a boxplot to make sure everything looks normalized and it on log2 scale.</p>
+
+<pre><code>
+boxplot(expr, las=3, main = &quot;E-GEOD-2034&quot;)
+
+</code></pre>
+
+<p><strong>Example GEO datasets</strong></p>
+
+<ul>
+<li>GSE2034</li>
+<li>GSE17705</li>
+<li>GSE16446</li>
+<li>GSE12093</li>
+</ul>
+
+<p><strong>raw .CEL files NOT in Array Express</strong>
+Sometimes you&#39;ll get Affymetrix, single-channel arrays in .CEL format but they won&#39;t be listed in Array Express.  No worries! Array Express actually steals most of its base functions from the Affy() package, built just for Affymetrix arrays. The ReadAffy() function will do the trick.</p>
+
+<p>Just use ReadAffy() and then can continue with gcrma( ) function.</p>
+
+<p>This is also a handy solution if you want to split apart your .CEL file groups before normalizing: for example, GSE25065 mixes both neoadjuvant and adjuvant, but it specifies treatment protocol at the patient level. These patients should NOT be normalized together! So download the files and split into separate file batches, then run ReadAffy. Some datasets like GSE20181 also mix together pre- and post-treatment patients; these should be separated before normalization is done.</p>
+
+<pre><code>
+require(&quot;affy&quot;)
+arrays = ReadAffy(filenames = fileNames)
+
+#we can also pull out the probe/reporter IDs with featuresNames()
+features = featureNames(arrays)
+summary(arrays$featureData)
+probeSet = features
+
+normArrays = gcrma(arrays)
+
+expr = exprs(normArrays)
+
+</code></pre>
+
+<p><strong>example datasets</strong></p>
+
+<ul>
+<li>GSE18728</li>
+<li>GSE33658</li>
+<li>GSE25065</li>
+<li>GSE25055 </li>
+<li>GSE19697</li>
+<li>GSE20181</li>
+<li>GSE10281</li>
+<li>GSE16391</li>
+</ul>
+
+<p><strong>raw .gpr Files</strong>
+These are GenePix files, i.e. the data was analyzed using GenePix software. GenePix arrays are usually two channels.  The limma package takes care of this.  Just download the raw files via getAE( ) if it&#39;s in Array Express or scp the files to the server. Put them in a separate patient file directory. Then, because it&#39;s two channels, you background correct, normalize within a single patient (i.e. between the multiple wells) and then normalize between the arrays.</p>
+
+<p><em>load the data</em>
+You need to specify the type of program. Here, the .gpr file tag tells us it&#39;s GenePix. Another common option is &ldquo;Spot&rdquo;.</p>
+
+<pre><code>
+require(&quot;limma&quot;)
+imageAnalysisProgram = &quot;genepix&quot;
+RG = read.maimages(fileNames, source = imageAnalysisProgram, path = filePath)
+
+</code></pre>
+
+<p><em>background correct</em>
+One of the channels is usually a reference sample, and we want this to be &ldquo;smoothed over&rdquo; and constant across all GEO GSM sets. The limma package has a nifty backgroundCorrect function.  Limma suggests &ldquo;normexp&rdquo; for differential expression, i.e. samples in the 2 channel are not from the same source (one is a reference channel).</p>
+
+<p>normexp adjusts the foreground adaptively for the background intensities and results in strictly positive adjusted intensities, i.e., negative or zero corrected intensities are avoided. I further specify normexp.method =rma, as we use RMA (Robust Multi-Array) normalization in gcrma().</p>
+
+<p>The use of an offset damps the variation of the log-ratios for very low intensities spots towards zero.</p>
+
+<p>Side note: subtraction is also a standard method, and works well with GenePix data. But normexp was reccommended as a general differential expression method.  </p>
+
+<pre><code>RGb = backgroundCorrect(RG, method = &quot;normexp&quot;, normexp.method = &quot;rma&quot;, offset = 50)
+
+</code></pre>
+
+<p><em>normalize within arrays</em>
+There&#39;s a couple of options, but loess is often used in the pre-processed datasets I&#39;ve seen, so I stuck with loess. However, Limma assumes print-tip loss. If it&#39;s an agilent array, always use the more general method = &ldquo;loess&rdquo;. Also use loess if small arrays with less than approx 150 spots per print-tip. I just defaulted to &ldquo;loess&rdquo; since we&#39;re handling public data and don&#39;t always know the quality at first glance.</p>
+
+<pre><code>MA = normalizeWithinArrays(RGb,method = &quot;loess&quot;)
+
+</code></pre>
+
+<p><em>normalize between arrays</em>
+Limma defaults to Aquantile for 2 colors (leaves log values unchanged) and quantile for one colors (we usually have 2 colors). Method=&ldquo;quantile&rdquo; ensures that the intensities have the same empirical distribution across arrays and across channels. method=&ldquo;Aquantile&rdquo; ensures that the A-values (average intensities) have the same empirical distribution across arrays leaving the M-values (log-ratios) unchanged. We usually want the Quantile normalization methods in general are fairly similar to rma, which we use for one-color arrays in gcrm (and for one-color background correction above.)</p>
+
+<p>Normalize between arrays will also log2 scale your expression matrix. The resulting object has some help attributes, like a list of targets.</p>
+
+<pre><code>
+MA.p = normalizeBetweenArrays(MA)
+GSMID = substring(rownames(MA.p$targets), 4)
+
+</code></pre>
+
+<p>Because this is a two-channel array, we can pull just the average intensities out of this expression object MA.p (that would be $A) or MA.p$M, which gives the log ratios (i.e. patient sample/reference.) There&#39;s no perfect choice - but most of the studies I see use $M, and all my pre-processed datasets used M. Publications also say that M values can be a bit more robust&hellip;however, Purvesh says to use A, log average expression. Both incorporate the R and G channels (see the equations below). For a meta-analysis looking across studies, M may be more sensitive to the reference sample, which probably won&#39;t be consistent across different studies.  </p>
+
+<p>\( M = \log_{2}(R)/\log_{2}(G) \)</p>
+
+<p>\( A=\frac{1}{2}\log_{2}(RG) \)</p>
+
+<p>Whether you use M or A, these metrics were developed because if you average the &ldquo;raw&rdquo; ratios from all R values or all G values, you don&#39;t get a symmetrical distribution of values around the meane expression value. Taking the log first of each \( R_{1}....R_{n} \) value across the replicate spots for a certain gene and THEN taking the average, so ave{\( \log_{R_{1}}+...\log_{R_{n}} \)} will actually give you symmetric values around the mean. </p>
+
+<p>M vs. A can be on a patient scale, or on a cohort scale.  The cohort scale is where the log(ratio) part becomes key: we usually calculated the M and A values across all patients to produce an MA plot for expression diagnostics. Remember that becuase this is logs, M implies we&#39;re dividing R by G, and A implies we&#39;re multiplying R by G and then taking the square root. </p>
+
+<p>\( M= \) ave{\( \log_{2}R_{1}...\log_{2}R_{n} \)} - ave{\( \log_{2}G_{1}...\log_{2}G_{n} \)}</p>
+
+<p>\( A=( \) ave{\( \log_{2}R_{1}...\log_{2}R_{n} \)} + ave{\( \log_{2}G_{1}...\log_{2}G_{n} \)}\( )/2 \)</p>
+
+<p>MA plots are then used to visualize intensity-dependent ratio of raw microarray data (microarrays typically show a bias here, with higher A resulting in a higher absolute value of \( \|M\| \), i.e. the brighter the spot the more likely an observed difference between sample and control). The MA plot uses M as the y-axis and A as the x-axis and gives a quick overview of the distribution of the data.</p>
+
+<p>In many microarray gene expression experiments, an underlying assumption is that most of the genes would not see any change in their expression therefore the majority of the points on the y-axis (M) would be located at 0, since Log(1) is 0. If this is not the case, then a normalization method such as LOESS should be applied to the data before statistical analysis. </p>
+
+<p><em>Normalization</em></p>
+
+<p>I just let the normalization scheme be &ldquo;Aquantiles&rdquo; because I&#39;m hesitant to use the log ratios to actually normalize <em>across</em> datasets - that means incorporating a reference tissue value from each array. I really only want to use the patients&#39; tissue samples to normalize between arrays (i.e. I don&#39;t want to use a normalization scheme that is heavily weighted by the reference sample, since this isn&#39;t even what I&#39;m truely interested in! I just use it to scale the individual patient&#39;s intensities.)</p>
+
+<pre><code>expr = MA.p$A
+
+</code></pre>
+
+<p>ALSO note that when you perform quantile or Aquantile normalization, you might end up with negative values again. So run this short piece of code Purvesh gave me to make all the values nonzero:</p>
+
+<pre><code>
+if(min(tempData,na.rm=T) &lt;0){
+    expr = expr - min(expr, na.rm=T)
+  } else{
+    expr = expr + min(expr, na.rm=T)
+ }
+
+</code></pre>
+
+<p>(You could also just check beforehand to see if the dataset is all positive, and forgo this code if it alreayd is).</p>
+
+<p><strong>example datasets</strong></p>
+
+<ul>
+<li>GSE12071  <strong>CHANGE THIS ONE TO $A, not $M.</strong></li>
+</ul>
+
+<p><strong>.gpr trouble-shooting: column headers</strong>
+Sometimes, read.maimages() has trouble reading column headers. But be forewarned: even if I get code to run, the outputs look to sketchy to use (GSE9893 below churned out exactly the same values for all patients.)</p>
+
+<pre><code>
+Error in readGenericHeader(fullname, columns = columns) :
+  Specified column headings not found in file
+Calls: read.maimages -&gt; readGenericHeader
+
+</code></pre>
+
+<p>First, open up the file. GenePix-analyzed files should have a Red foreground and background and a Green foreground and background. You should be able to find similar column headers to the ones below (&ldquo;F635 Median&rdquo;, etc), and just use the &ldquo;columns&rdquo; keyword in read.maimages() to specify them below.  You may also see just R, Rb, G, Gb headers. The Limma user guide page 17 outlines this some more.</p>
+
+<pre><code>RG &lt;- read.maimages(files,source=&quot;genepix&quot;, columns=list(R=&quot;F635 Median&quot;,G=&quot;F532 Median&quot;,Rb=&quot;B635&quot;,Gb=&quot;B532&quot;))
+
+</code></pre>
+
+<p>Sometimes there are twists. For example, GSE9893 was giving me some trouble. I looked up the scan protocol on GEO for a sample in the cohort and read:</p>
+
+<p>&ldquo;Fluorescent images of hybridized microarrays were obtained with Axon 4000B scanner and analyzed using Genepix 6.0. The mean of replicated spots was calculated for each gene by using the Acuity 4.0 software.&rdquo; Ok so I know we&#39;re specifying &ldquo;genepix&rdquo; in Limma. But just specifying &ldquo;genepix&rdquo; in read.maimages() wasn&#39;t working.</p>
+
+<p>When I then opened up one of the .gpr filese using nano in Linux, I saw only the R and Rb (F635 and B635) columns, no F532, B532. GSE9893 used GPL5049, a single channel array (you can tell because there is one channel for the sample in GEO, and the processed data is not a ratio, just a mean.) So I left out G, Gb and Limma and still ran it with the &ldquo;genepix&rdquo; keyword. Limma recognized it as a single-channel array and it went fine.  I might have also been able to specify green.only = TRUE which just means one channel (although this dataset decided to use the traditional Red/635, labels for its headers! But either way, Red or Green, it&#39;s just a single channel and that&#39;s what matters.)</p>
+
+<pre><code>
+#script for .gpr files
+
+#file path to separate directory of downloaded .gpr files
+
+filePath =
+(&quot;~/expr_breastCancerDatasets/GSE9893/GSE9893_RAW&quot;)
+
+#what array the study used
+array = &quot;gpl_5049&quot;
+
+fileNames = list.files(filePath, full.names = TRUE)
+
+imageAnalysisProgram = &quot;genepix&quot;
+G = read.maimages(fileNames, source = imageAnalysisProgram,columns = list(R=&quot;F635 Median&quot;, Rb = &quot;B635&quot;))
+
+</code></pre>
+
+<pre><code>
+Background correct and normalize as usual.
+Rb = backgroundCorrect(R, method = &quot;normexp&quot;, normexp.method=
+&quot;rma&quot;,offset = 50)
+
+MA.p = normalizeBetweenArrays(Rb)
+
+</code></pre>
+
+<p>Now, after normalization,  my expression is a single-channel Elist.</p>
+
+<pre><code>expr = MA.p$E
+
+</code></pre>
+
+<p><strong>example dataset</strong></p>
+
+<ul>
+<li>GSE9893 (BUT the boxplot showed absoultely no deviation between patients! So I used processed data)</li>
+</ul>
+
+<p><strong>processed data in text files</strong>
+Oftentimes I pull out data from the GEO series matrix and it&#39;s already normalized and processed. So I clean up the excel table, and usually the first row are the probeIDs, which I feed into Purvesh&#39;s data mapping.</p>
+
+<pre><code>#download my cleaned-up series matrix from GEO. first column is probeID
+data = read.delim(header = TRUE, file = &quot;GSE21974_preTreat_expression.txt&quot;)
+expr = data[,2:dim(data)[2]]
+ProbeID = data[,1]
+
+GSMID = substring(colnames(expr), 4)
+print(GSMID[1:10])
+
+#looked-already all nonzero values
+#if wasn&#39;t: expr = expr - min(expr, na.rm = TRUE)
+
+print(dim(expr))
+summary(expr)
+
+
+#load Purvesh&#39;s database functions db_functions.r
+source(file = &quot;~/global_R_code/db_functions.r&quot;)
+con = connect.db(&quot;ywrfc09&quot;, &quot;aveelyau05&quot;, host=&quot;buttelab-db1&quot;, dbname=&quot;annot_gpl&quot;)
+
+#extract genes from your probe list
+dataMapping = mapProbesToGenes.db(con, ProbeID, map.to=&quot;Symbol&quot;, gpl.table=array)
+dbDisconnect(con)
+
+summary(dataMapping)
+print((dataMapping[ProbeID,&quot;gene&quot;])[1:20])
+
+reporterID = ProbeID
+
+geneSymbol = dataMapping[ProbeID, &quot;gene&quot;]
+
+</code></pre>
+
+<p><strong>example datasets</strong></p>
+
+<ul>
+<li>GSE1379</li>
+<li>GSE21974 (fought to make it work with Limma but a no-go!)</li>
+<li>GSE4913 (much easier than analyzing 2 channel dye-swap yourself!)</li>
+<li>GSE349</li>
+<li>GSE350</li>
+<li>GSE22358</li>
+<li>GSE19697</li>
+</ul>
+
+<p><strong>.CEL or .gpr files, but not working because:</strong></p>
+
+<p><strong>actually just processed data inside the &ldquo;raw&rdquo; file (or gibberish!)</strong></p>
+
+<p>Know when to pick your battles&hellip;if the GEO series matrix has the same data, it&#39;s probably just easier to pull it from that one text file, versus reading through all the patient files (just double-check the normalization and log methods).  You can always adjust to make all the values positive after checking out the box plot. Hint: clean up the series matrix first! There&#39;s always an annoying &ldquo;end of series&rdquo; tagline, and sometimes extra headers. Clean this up in excel before you pipe it in so that your # rows matches up with the # gene symbols.</p>
+
+<p><strong>example datasets</strong></p>
+
+<ul>
+<li><p>GSE32646 (try opening up the .CEL files in a text reader&hellip;it&#39;s a bunch of incoherent symbols. For every other .CEL file, I&#39;ve been able to see text if I open it up with the nano text reader in linux.)</p>
+
+<p><strong>limma can&#39;t recognize the array type</strong>
+If you use Limma and read.maimages() to open up your files, and you get errors like &ldquo;can&#39;t identify columns&rdquo; you&#39;re probably in for a hairy problem. I did list one example, GSE9893, in the .gpr section, where I got it to work.</p></li>
+</ul>
+
+<pre><code>
+Error in readGenericHeader(fullname, columns = columns) :
+  Specified column headings not found in file
+Calls: read.maimages -&gt; readGenericHeader
+
+</code></pre>
+
+<p>You can try and list out the columns like the previous scenario, but if it&#39;s not workly quickly, I&#39;ve found it&#39;s not worth your time. I usually hit a wall when the array was a &ldquo;custom&rdquo; array and was only used for that study.  Limma has some trouble understanding these arrays, as seen in the Limma manual: &ldquo;the image analysis programs Agilent Feature Extraction, ArrayVision, BlueFuse, GenePix, ImaGene, QuantArray (Version 3 or later), Stanford Microarray Database (SMD) and SPOT are supported explicitly. Data from some other image analysis programs can be read if the appropriate column names containing the foreground and background intensities are specified using the columns argument. (This will work if the column names are unique and if there are no rows in the file after the last line of data. Header lines are ok.)&rdquo;</p>
+
+<p>So my advice here is to just use the GEO series matrix with average expression values or processed data.</p>
+
+<p><strong>Array Express only has the processed data, but columns aren&#39;t recognized by magetab2bioc()</strong>
+I ran into this a couple of times. If you look at the get AE() source code on bioconductor, you&#39;ll notice that magetab2bioc() just scans the text, but it skips the first line&hellip;i.e. it often skips the header. so even if you call getprocol(), it will spit out what seems like gibberish (actually it&#39;s just the first row of data). But even inputting the header names myself never worked, so here I just resorted to text processing once again (worth it to check if the GEO vs. Array Express files are easily to deal with.)</p>
+
+<p><strong>example datasets</strong></p>
+
+<ul>
+<li>GSE9893</li>
+<li><p>GSE32646</p>
+
+<p><strong>multiple arrays so Array Express can&#39;t read it</strong>
+Unfortunately, Array Express doesn&#39;t seem to have an innate function to parse this out! So you can download processed or raw files, but can&#39;t use other functions. It&#39;s much easier to used processed files here and just bucket the patients in each array group.</p></li>
+</ul>
+
+<p><strong>example datasets</strong></p>
+
+<ul>
+<li>GSE22226</li>
+<li>GSE21997</li>
+</ul>
+
+<p><strong>&ldquo;pesudo-raw&rdquo; basic .txt files with average intensities</strong>
+This can happen even if it&#39;s in Array Express - if a bunch of sample.txt filese are spit out using getAE(), just be happy you got the files downloaded to the server and then resort to parsing the text files.</p>
+
+<p>Sometimes, you can just pull out the processed data (i.e. just text parsing.) But check the box plot - sometimes it&#39;s pretty clear it may be normalized, but not log2, etc. 
+Use quantile normalization function, and then make all values nonzero like we&#39;ve done before with quantile normalization cases (I got the below code from Purvesh - I altered it so that it automatically always makes the values &gt; 0). <em>Then</em> log2 if the data already isn&#39;t on log2 scale (values should be below 100, usually even below 20, as a gut-check).</p>
+
+<pre><code>quantileNormalize &lt;- function(dataMatrix){
+
+  require(preprocessCore)
+  tempData = normalize.quantiles(dataMatrix)
+  rownames(tempData) = rownames(dataMatrix)
+  colnames(tempData) = colnames(dataMatrix)
+
+  #adjust code so that it&#39;s all greater than 0
+  if(min(tempData,na.rm=T) &lt;0){
+    tempData = tempData - min(tempData, na.rm=T)
+  } else{
+    tempData = tempData + min(tempData, na.rm=T)
+
+ }
+  return(tempData)
+
+}
+
+expr = quantileNormalize(yourExpressionMatrix)
+
+#then log2(expr) data if not already logged! here it is.
+</code></pre>
+
+<p><strong>example datasets</strong>
+GSE11264</p>
+
+<p><strong>raw .txt files with 2 channels</strong>
+If you notice in GEO that the patient arrays have two channels, and then open up the text file and it&#39;s the raw output with a lot of rows with different measurements like mean, SD, CV, etc (and often a bunch of headers), you have a few choices. If the summmary expression matrix is in GEO, it may just be easier to start here. If not, you can open up a file and look at the columns. If it&#39;s easy to detect the column header for red or &ldquo;R&rdquo;, red background or &ldquo;Rb&rdquo;, green or &ldquo;G&rdquo; and green background or &ldquo;Gb&rdquo;, you can feed this into limma.</p>
+
+<p>For GSE18378, I first noted that the image anaylsis program here was &ldquo;spot&rdquo;, not GenePix (no way to tell from the .txt file extension - I just looked up the array GPL6848 in GEO).</p>
+
+<pre><code>imageAnalysisProgram = &quot;spot&quot;
+
+</code></pre>
+
+<p>I then just opened up a sample file in excel and looked to see if the headers were intuitive. I then used the &ldquo;columns&rdquo; keyword in Limmma&#39;s read.maimages( ) to create for the 4 aforementioned columns (see Limma reference manual for a bit more info). You then continue on your merry way like the other Limma files (outline in the .gpr section)</p>
+
+<pre><code>
+RG = read.maimages(fileNames, source = imageAnalysisProgram, path = 
+filePath, columns =list(Rf=&quot;rMedianSignal&quot;, Gf=&quot;gMedianSignal&quot;, Rb 
+=&quot;rBGMedianSignal&quot;, Gb=&quot;gBGMedianSignal&quot;))
+
+</code></pre>
+
+<p>Another hitch in text files I came across: &ldquo;normal&rdquo; and &ldquo;dye swap&rdquo; files. Basically, one file labels the patient as Cy3, one as Cy5 (i.e. they split up the sample to create two different arrays).  But if the &ldquo;normal&rdquo; file also has a standard reference, just use this two-channel file for a first pass.</p>
+
+<p><strong>exmaple datasets</strong>
+GSE18378</p>
+
+<p><strong>raw .txt files with 1 channel</strong>
+A similar scenario to above, except that in GEO you see that there&#39;s only one channel.  I saw this with Agilent arrays - they can be 1 channel, but not always in Array Express. Limma can process this using &ldquo;green.only = TRUE&rdquo;, i.e. a one-color/one channel array. You can just use the series matrix in GEO usually, but if you&#39;re curious :) &hellip;.</p>
+
+<p>Figure out what the green foreground and background channel are, and list these as E and Eb, respectively (it may be a few rows down after information about the array -open up a sample patient data file.) Then continue as usual (don&#39;t normalize within arrays, only betwee, as it&#39;s one channel.)</p>
+
+<pre><code>
+imageAnalysisProgram = &quot;agilent&quot;
+
+#green.only = TRUE i.e. only Cy3 here - can confirm by opening up GEO patient, skimming description rows.
+G = read.maimages(fileNames, source = imageAnalysisProgram, path = filePath, green.only = TRUE, columns = list(E=&quot;gMeanSignal&quot;$
+
+Gb = backgroundCorrect(G, method = &quot;normexp&quot;,normexp.method =
+&quot;rma&quot;,offset = 50)
+
+MA.p = normalizeBetweenArrays(Gb)
+
+#pull out expression values: now $E, for an Elist
+expr = MA.p$E
+
+</code></pre>
+
+<p><em>Note of caution</em> - it&#39;s oftentimes still easier to just use the series matrix. I got the code above to work on GSE21974, but when I plotted it, all the values were the same! It can hard to ID truely which columns you&#39;re supposed to pull out. To be fair, even the processed values in GSE21974 are incredibly similar, so it may just be a bad dataset.</p>
+
+<p><strong>raw .txt files with separate green, red files</strong>
+I only saw this once, but if you think you only need the patient sample file, just use &ldquo;green.only = TRUE&rdquo; in your Limma functions and run just the green files.  The Limma user guide has more detailed directions if you want to use both files, but it involves creating a table with targets, Cy3, Cy5 labels, etc&hellip;probably easier to just start with whatever values they give you in the GEO series matrix.</p>
+
+<p><strong>example datasets</strong>
+You can download GSE4913 to see and example (plut it&#39;s dye swap so 4 files/patient!) But I just took the processed values for this one. </p>
+
+</body>
+
+</html>
+

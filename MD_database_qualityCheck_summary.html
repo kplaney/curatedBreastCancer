@@ -1,0 +1,1048 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<title>Katie&#39;s database quality checks</title>
+
+<base target="_blank"/>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: rgb(88, 72, 246)
+   }
+
+   pre .number {
+     color: rgb(0, 0, 205);
+   }
+
+   pre .comment {
+     color: rgb(76, 136, 107);
+   }
+
+   pre .keyword {
+     color: rgb(0, 0, 255);
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: rgb(3, 106, 7);
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+
+</head>
+
+<body>
+<h1>Katie&#39;s database quality checks</h1>
+
+<p>This is a quick run-down of the two datasets I checked to make sure I was reading in my data properly. I chose one processed dataset, which means I was basically just uploading a text file, and a raw dataset, which means I downloaded the files and ran an automated script to upload it all to the database.  For any type of expression study, my code:<br/>
+-updates gene symbols<br/>
+-puts one gene symbol/line (makes it easier down the road to match up gene symbols in studies)<br/>
+-creates outlier reports (optional as this is computationally intensive)</p>
+
+<p>I wanted to make sure all these processes were giving me similar results to those found in publications using this GEO data.</p>
+
+<p><strong>GSE1379</strong><br/>
+GSE1379 is a cool GEO study because it also includes a separate laser micro-dissected dataset from the same patients (I also have this uploaded, just trying to decide how/when to use it.) These patients all had breas cancer, and had surgery to remove their tumors. They then had tamoxifen (anti-estrogen therapy) for 5 years. Biopsies were taken before any treamtent was given (standard).</p>
+
+<p>The study just took the top 25% of genes by variance and then ran a paired t-test on every single gene, using a final p-value cutoff of .001 (they were left with 19 probes.)</p>
+
+<p>I first pull the data down using RmySQL and database-specific functions I&#39;ve created (and need to document in R markdown!)</p>
+
+<pre><code class="r">require(DBI)
+</code></pre>
+
+<pre><code>## Loading required package: DBI
+</code></pre>
+
+<pre><code class="r">require(RMySQL)
+</code></pre>
+
+<pre><code>## Loading required package: RMySQL
+</code></pre>
+
+<pre><code class="r"># code to pull out expression, outcomes data
+source(&quot;~/Box Documents/Atul BC biomarkers/breastcancer/queryAndPackageExpression.R&quot;)
+
+# errr...don&#39;t use this info!
+username = &quot;ywrfc09&quot;
+password = &quot;aveelyau05&quot;
+host = &quot;buttelab-db1&quot;
+dbname = &quot;user_ywrfc09&quot;
+
+
+# get GSMIDs for this cohort
+GSE_ID &lt;- 1379
+
+# select the correct patient IDs (GMIDs) from this specific GEO study
+query &lt;- paste(&quot;SELECT GEO_GSMID FROM breastCancer_humans_perPatientData WHERE GEO_GSE_reference_series = &quot;, 
+    GSE_ID, &quot; ORDER BY GEO_GSE_reference_series&quot;, sep = &quot;&quot;)
+m &lt;- dbDriver(&quot;MySQL&quot;)
+con = dbConnect(m, username = username, password = password, host = host, dbname = dbname)
+res &lt;- dbSendQuery(con, query)
+GSMIDs &lt;- fetch(res, n = -1)
+dbDisconnect(con)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<pre><code class="r">
+# pass in these IDs to get the corresponding clinical data. You&#39;ll note
+# that these patients has Disease Free Survival (DFS) reported (this
+# function also always spits out the corresponding class variable), and I
+# chose to not create an outlier/quality report.
+GSMIDs &lt;- t(GSMIDs)
+GSMIDs &lt;- as.vector(GSMIDs)
+data &lt;- queryAndPackageOutcomesAndExpression(GSMIDs = GSMIDs, query_name = GSE_ID, 
+    outcomes_var = &quot;DFS&quot;, arrayQualityReport = FALSE, qualityCheckFilePath = &quot;~/Box Documents/Atul BC biomarkers/documentation/arrayQualityCheck/&quot;)
+</code></pre>
+
+<pre><code>## Loading required package: arrayQualityMetrics
+</code></pre>
+
+<pre><code>## Creating a generic function for &#39;boxplot&#39; from package &#39;graphics&#39; in
+## package &#39;affyPLM&#39;
+</code></pre>
+
+<pre><code>## Creating a generic function for &#39;hist&#39; from package &#39;graphics&#39; in package
+## &#39;affyPLM&#39;
+</code></pre>
+
+<pre><code>## Loading required package: limma
+</code></pre>
+
+<pre><code>## Warning: package &#39;limma&#39; was built under R version 2.15.1
+</code></pre>
+
+<pre><code>## [1] &quot;SELECT GEO_GSMID, GSM_GSMID, GEO_GSE_reference_series, site_prefix, GEO_platform_ID ,DFS, \nmicroarray_outlier,biopsy_postTrt_days FROM breastCancer_humans_perPatientData WHERE ( microarray_outlier = 0 AND ((GEO_GSMID = 22449) OR (GEO_GSMID = 22450) OR (GEO_GSMID = 22451) OR (GEO_GSMID = 22452) OR (GEO_GSMID = 22453) OR (GEO_GSMID = 22454) OR (GEO_GSMID = 22455) OR (GEO_GSMID = 22456) OR (GEO_GSMID = 22457) OR (GEO_GSMID = 22458) OR (GEO_GSMID = 22459) OR (GEO_GSMID = 22460) OR (GEO_GSMID = 22461) OR (GEO_GSMID = 22462) OR (GEO_GSMID = 22463) OR (GEO_GSMID = 22464) OR (GEO_GSMID = 22465) OR (GEO_GSMID = 22466) OR (GEO_GSMID = 22467) OR (GEO_GSMID = 22468) OR (GEO_GSMID = 22469) OR (GEO_GSMID = 22470) OR (GEO_GSMID = 22471) OR (GEO_GSMID = 22472) OR (GEO_GSMID = 22473) OR (GEO_GSMID = 22474) OR (GEO_GSMID = 22475) OR (GEO_GSMID = 22476) OR (GEO_GSMID = 22477) OR (GEO_GSMID = 22478) OR (GEO_GSMID = 22479) OR (GEO_GSMID = 22480) OR (GEO_GSMID = 22481) OR (GEO_GSMID = 22482) OR (GEO_GSMID = 22483) OR (GEO_GSMID = 22484) OR (GEO_GSMID = 22485) OR (GEO_GSMID = 22486) OR (GEO_GSMID = 22487) OR (GEO_GSMID = 22488) OR (GEO_GSMID = 22489) OR (GEO_GSMID = 22490) OR (GEO_GSMID = 22491) OR (GEO_GSMID = 22492) OR (GEO_GSMID = 22493) OR (GEO_GSMID = 22494) OR (GEO_GSMID = 22495) OR (GEO_GSMID = 22496) OR (GEO_GSMID = 22497) OR (GEO_GSMID = 22498) OR (GEO_GSMID = 22499) OR (GEO_GSMID = 22500) OR (GEO_GSMID = 22501) OR (GEO_GSMID = 22502) OR (GEO_GSMID = 22503) OR (GEO_GSMID = 22504) OR (GEO_GSMID = 22505) OR (GEO_GSMID = 22506) OR (GEO_GSMID = 22507) OR (GEO_GSMID = 22508)) AND ((DFS IS NOT NULL )) ) ORDER BY GEO_GSE_reference_series, site_prefix, GEO_platform_ID, biopsy_postTrt_days&quot;
+## [1] &quot;total number of samples is:&quot;
+## [1] 60
+## [1] &quot;current starting index is:&quot;
+## [1] 1
+## GSE ID is:  1379 
+## platform is:  GPL1223 
+## site prefix is  NA 
+## treat_days are:  0[1] &quot;probe table is:&quot;
+## [1] &quot;probes_GSE1379_GPL1223&quot;
+## successfully downloaded expression values for this sub-cohort 1379_GPL1223_NA[1] 1379
+## [1] &quot;current class is:&quot;
+##  [1] 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 1 1 0 1 1 0 1 1 0 1 0 1 1 1 0 0 1 0 0
+## [36] 1 1 0 1 1 1 1 0 1 1 1 0 0 1 1 0 0 1 1 1 1 1 1 1 1
+## attr(,&quot;levels&quot;)
+## [1] &quot;0&quot; &quot;1&quot;
+## [1] &quot;length of keys is:&quot;
+## [1] 22582
+## [1] &quot;dim of expr is:&quot;
+## [1] 22582    60
+## all dataset names are:  GSE1379_GPL1223
+</code></pre>
+
+<pre><code class="r">
+data &lt;- data$allDataSets[[1]]
+</code></pre>
+
+<p>You&#39;ll from my ramblings that pretty quickly I&#39;d be getting at least some different results from the publication because they claim top 25% = 5475 genes. I could NOT figure out how they got this number.</p>
+
+<pre><code class="r"># NOTE: they claim 25% of the genes = 5475. Without removing all the NAs
+# at the top, I got 5645.6 non-NAs start at row 217, which is &#39;NUDT2&#39;.
+# this leaves us with 25% = 5592.... careful because you also expanded the
+# dataset to parse out /// &amp; update symbols. 22575 vs. 22582 - that&#39;s not
+# a TON though however, even when I remove the NAs and look at the
+# original top gene list, that&#39;s only 4201! where the HELL did they get
+# 5475 from???
+
+# did they remove ALL NAs first? but then get lower than 5475.
+
+# keys = gene symbols (I used Purvesh&#39;s notation)
+expr &lt;- data$expr[which(!is.na(data$keys)), ]
+keys &lt;- data$keys[which(!is.na(data$keys))]
+probes &lt;- data$probes[which(!is.na(data$keys))]
+class &lt;- data$class
+</code></pre>
+
+<p>As an extra double-check, I downloaded the original processed data file from GEO again to compare.</p>
+
+<pre><code class="r"># double-check original text file note: NAs are &#39;&#39; here in keys (no NAs in
+# expr)
+orig_data &lt;- read.delim(&quot;~/Box Documents/Atul BC biomarkers/documentation/arrayQualityCheck/1379GSE1379_GPL1223/GSE1379_test.txt&quot;, 
+    header = TRUE, na.strings = &quot;&quot;)
+expr_orig &lt;- orig_data[, 3:dim(orig_data)[2]]
+keys_orig &lt;- orig_data[, 1]
+# remove NAs.finicky...-is.na vs !is.na sometimes zeros out all rows??
+keys_orig &lt;- keys_orig[which(!is.na(keys_orig))]
+expr_orig &lt;- expr_orig[which(!is.na(keys_orig)), ]
+
+# re-align classes for original data matrix! match up here already though
+# :)
+which(colnames(expr) == colnames(expr_orig))
+</code></pre>
+
+<pre><code>##  [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+## [24] 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46
+## [47] 47 48 49 50 51 52 53 54 55 56 57 58 59 60
+</code></pre>
+
+<p>Now that I have my data prepped and ready to go, I calculated the variance (I realize I could have done this using sapply()&hellip;or heck way faster in MATLAB with matrices&hellip;but I at least like seeing what I&#39;m doing in R with loops.)</p>
+
+<pre><code class="r">var &lt;- array(data = NA, dim = length(keys))
+var_orig &lt;- array(data = NA, dim = length(keys_orig))
+
+expr &lt;- as.matrix(expr)
+
+for (v in 1:length(keys)) {
+
+    var[v] &lt;- var(expr[v, ])
+
+}
+
+# need it in matrix format to work with var() for some reason
+expr_orig &lt;- as.matrix(expr_orig)
+for (t in 1:length(keys_orig)) {
+
+    var_orig[t] &lt;- var(expr_orig[t, ])
+
+}
+</code></pre>
+
+<p>I then rank the variances and look for the top 25%.</p>
+
+<pre><code class="r">sortVar &lt;- sort.int(decreasing = TRUE, var, index.return = TRUE)
+sortVar_orig &lt;- sort.int(decreasing = TRUE, var, index.return = TRUE)
+
+# take top 75th percentile of genes by variance.
+top25_var_values &lt;- sortVar$x[1:round(0.25 * (length(keys)))]
+top25_var_indices &lt;- sortVar$ix[1:round(0.25 * (length(keys)))]
+
+
+top25_expr &lt;- expr[top25_var_indices, ]
+top25_keys &lt;- keys[top25_var_indices]
+top25_probes &lt;- probes[top25_var_indices]
+
+# do the same for original list
+top25_var_valuesO &lt;- sortVar_orig$x[1:round(0.25 * (length(keys_orig)))]
+top25_var_indicesO &lt;- sortVar_orig$ix[1:round(0.25 * (length(keys_orig)))]
+
+
+top25_exprO &lt;- expr[top25_var_indicesO, ]
+top25_keysO &lt;- keys[top25_var_indicesO]
+top25_probesO &lt;- probes[top25_var_indicesO]
+</code></pre>
+
+<p>Then a quick gut-check. HOXB13 was a highlighted gene in the paper&hellip;is it at least in the top 25?</p>
+
+<pre><code class="r"># good...at least getting HOXB13 to show up...oddly enough grep didn&#39;t
+# work here! due to data format?
+which(top25_keys == &quot;HOXB13&quot;)
+</code></pre>
+
+<pre><code>## [1]  76 468
+</code></pre>
+
+<pre><code class="r">which(top25_keysO == &quot;HOXB13&quot;)
+</code></pre>
+
+<pre><code>## [1]  76 468
+</code></pre>
+
+<p>Great! On to the paired t-statistic.</p>
+
+<pre><code class="r">t_stat &lt;- array(data = NA, dim = length(top25_keys))
+t_pValue &lt;- array(data = NA, dim = length(top25_keys))
+t_parameter &lt;- array(data = NA, dim = length(top25_keys))
+top25_expr &lt;- as.matrix(top25_expr)
+
+classM &lt;- as.numeric(matrix(class))
+for (e in 1:length(top25_keys)) {
+
+    # may not have equal case vs. control grps. run sample t-test via formual
+    # then, not just t.test(x,y) rbind changes class to 1,2
+    singleGene &lt;- as.numeric(matrix(top25_expr[e, ]))
+    dataMatrix &lt;- matrix(data = NA, nrow = length(classM), ncol = 2)
+    dataMatrix[, 1] &lt;- singleGene
+    dataMatrix[, 2] &lt;- classM
+    cols &lt;- c(&quot;gene&quot;, &quot;class&quot;)
+    colnames(dataMatrix) &lt;- cols
+
+    test &lt;- t.test(gene ~ class, data = dataMatrix)
+    t_stat[e] &lt;- test$statistic
+    t_parameter[e] &lt;- test$parameter
+    t_pValue[e] &lt;- test$p.value
+
+}
+
+sort_pValues &lt;- sort.int(decreasing = FALSE, t_pValue, index.return = TRUE)
+# only 19 genes indeed made .001 rounded cutoff
+top19pValues &lt;- sort_pValues$x[1:19]
+top19GeneIndices &lt;- sort_pValues$ix[1:19]
+top19Genes &lt;- top25_keys[top19GeneIndices]
+
+# now do for original data
+t_statO &lt;- array(data = NA, dim = length(top25_keysO))
+t_pValueO &lt;- array(data = NA, dim = length(top25_keysO))
+t_parameterO &lt;- array(data = NA, dim = length(top25_keysO))
+top25_exprO &lt;- as.matrix(top25_exprO)
+
+classM &lt;- as.numeric(matrix(class))
+for (e in 1:length(top25_keysO)) {
+
+    # may not have equal case vs. control grps. run sample t-test via formual
+    # then, not just t.test(x,y) rbind changes class to 1,2
+    singleGene &lt;- as.numeric(matrix(top25_exprO[e, ]))
+    dataMatrix &lt;- matrix(data = NA, nrow = length(classM), ncol = 2)
+    dataMatrix[, 1] &lt;- singleGene
+    dataMatrix[, 2] &lt;- classM
+    cols &lt;- c(&quot;gene&quot;, &quot;class&quot;)
+    colnames(dataMatrix) &lt;- cols
+
+    test &lt;- t.test(gene ~ class, data = dataMatrix)
+    t_statO[e] &lt;- test$statistic
+    t_parameterO[e] &lt;- test$parameter
+    t_pValueO[e] &lt;- test$p.value
+
+}
+
+sort_pValuesO &lt;- sort.int(decreasing = FALSE, t_pValueO, index.return = TRUE)
+# only 19 genes indeed made .001 rounded cutoff
+top19pValuesO &lt;- sort_pValuesO$x[1:19]
+top19GeneIndicesO &lt;- sort_pValuesO$ix[1:19]
+top19GenesO &lt;- top25_keysO[top19GeneIndicesO]
+</code></pre>
+
+<p>Look at the top genes and p values. Looks like at least my database data matches up with the original data matrix in GEO!</p>
+
+<pre><code class="r">print(top19pValues)
+</code></pre>
+
+<pre><code>##  [1] 2.142e-05 9.351e-05 1.153e-04 1.889e-04 2.077e-04 2.459e-04 3.389e-04
+##  [8] 5.334e-04 6.647e-04 6.703e-04 7.154e-04 8.213e-04 1.013e-03 1.034e-03
+## [15] 1.110e-03 1.146e-03 1.254e-03 1.276e-03 1.316e-03
+</code></pre>
+
+<pre><code class="r">print(top19Genes)
+</code></pre>
+
+<pre><code>##  [1] &quot;CCL4&quot;      &quot;IL1R2&quot;     &quot;IL17RB&quot;    &quot;DOK2&quot;      &quot;SH2B2&quot;    
+##  [6] &quot;CHDH&quot;      &quot;ABCC11&quot;    &quot;PTGER3&quot;    &quot;ANO3&quot;      &quot;LYPD6&quot;    
+## [11] &quot;CCL3L3&quot;    &quot;GUCY2D&quot;    &quot;HOXB13&quot;    &quot;HOXB13&quot;    &quot;PLA2G7&quot;   
+## [16] &quot;RHD&quot;       &quot;TNFAIP8L2&quot; &quot;LILRA5&quot;    &quot;SLAMF8&quot;
+</code></pre>
+
+<pre><code class="r">
+print(top19pValuesO)
+</code></pre>
+
+<pre><code>##  [1] 2.142e-05 9.351e-05 1.153e-04 1.889e-04 2.077e-04 2.459e-04 3.389e-04
+##  [8] 5.334e-04 6.647e-04 6.703e-04 7.154e-04 8.213e-04 1.013e-03 1.034e-03
+## [15] 1.110e-03 1.146e-03 1.254e-03 1.276e-03 1.316e-03
+</code></pre>
+
+<pre><code class="r">print(top19GenesO)
+</code></pre>
+
+<pre><code>##  [1] &quot;CCL4&quot;      &quot;IL1R2&quot;     &quot;IL17RB&quot;    &quot;DOK2&quot;      &quot;SH2B2&quot;    
+##  [6] &quot;CHDH&quot;      &quot;ABCC11&quot;    &quot;PTGER3&quot;    &quot;ANO3&quot;      &quot;LYPD6&quot;    
+## [11] &quot;CCL3L3&quot;    &quot;GUCY2D&quot;    &quot;HOXB13&quot;    &quot;HOXB13&quot;    &quot;PLA2G7&quot;   
+## [16] &quot;RHD&quot;       &quot;TNFAIP8L2&quot; &quot;LILRA5&quot;    &quot;SLAMF8&quot;
+</code></pre>
+
+<p>Looking further at the excel sheet errorCheck_GSE1379 on Central Desktop, you can see that I was able to translate the paper&#39;s old gene symbols to mine (i.e. the R gene symbol update package HGNChelper I used is working), and that the p-values are very similar (some ranks are different.) It turns out only 14 of the paper&#39;s top 19 genes are actually gene symbols, the rest were probes&hellip;.that still weren&#39;t in their dataset in GEO?</p>
+
+<p>Given the widely accepted notion that sadly, it&#39;s quite hard to replicate gene signature studies, I&#39;d say this exercise at least proves I&#39;m reading in my processed data correctly. On to raw data!</p>
+
+<p><strong>GSE19615</strong><br/>
+I actually had to go add a new dataset to find a raw dataset with clear enough methods I could <em>somewhat</em> reproduce. The normalization scheme and background correction wasnt&#39; explicitly stated, but I do know that the paper used PAMR on the procesesed data, and gave their top gene list.</p>
+
+<p>Load up the data like before (same functions). Becuase this data is taken from my database, it was already background corrected and normalized via ReadAffy() and gcrma().</p>
+
+<pre><code class="r"># get GSMIDs for this cohort
+GSE_ID &lt;- 19615
+
+
+query &lt;- paste(&quot;SELECT GEO_GSMID FROM breastCancer_humans_perPatientData WHERE GEO_GSE_reference_series = &quot;, 
+    GSE_ID, &quot; ORDER BY GEO_GSE_reference_series&quot;, sep = &quot;&quot;)
+m &lt;- dbDriver(&quot;MySQL&quot;)
+con = dbConnect(m, username = username, password = password, host = host, dbname = dbname)
+res &lt;- dbSendQuery(con, query)
+GSMIDs &lt;- fetch(res, n = -1)
+dbDisconnect(con)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<pre><code class="r">
+GSMIDs &lt;- t(GSMIDs)
+GSMIDs &lt;- as.vector(GSMIDs)
+
+# outcomes variable in paper wasn&#39;t RFS/relapse, but distant (bone)
+# metastasis
+data &lt;- queryAndPackageOutcomesAndExpression(GSMIDs = GSMIDs, query_name = GSE_ID, 
+    outcomes_var = &quot;RFS&quot;, arrayQualityReport = FALSE, qualityCheckFilePath = &quot;~/Box Documents/Atul BC biomarkers/documentation/arrayQualityCheck/&quot;)
+</code></pre>
+
+<pre><code>## [1] &quot;SELECT GEO_GSMID, GSM_GSMID, GEO_GSE_reference_series, site_prefix, GEO_platform_ID ,RFS, \nmicroarray_outlier,biopsy_postTrt_days FROM breastCancer_humans_perPatientData WHERE ( microarray_outlier = 0 AND ((GEO_GSMID = 491236) OR (GEO_GSMID = 491266) OR (GEO_GSMID = 491268) OR (GEO_GSMID = 491230) OR (GEO_GSMID = 491233) OR (GEO_GSMID = 491223) OR (GEO_GSMID = 491231) OR (GEO_GSMID = 491242) OR (GEO_GSMID = 491237) OR (GEO_GSMID = 491225) OR (GEO_GSMID = 491217) OR (GEO_GSMID = 491209) OR (GEO_GSMID = 491211) OR (GEO_GSMID = 491208) OR (GEO_GSMID = 491265) OR (GEO_GSMID = 491255) OR (GEO_GSMID = 491204) OR (GEO_GSMID = 491207) OR (GEO_GSMID = 491239) OR (GEO_GSMID = 491213) OR (GEO_GSMID = 491235) OR (GEO_GSMID = 491205) OR (GEO_GSMID = 491206) OR (GEO_GSMID = 491226) OR (GEO_GSMID = 491251) OR (GEO_GSMID = 491219) OR (GEO_GSMID = 491260) OR (GEO_GSMID = 491243) OR (GEO_GSMID = 491240) OR (GEO_GSMID = 491256) OR (GEO_GSMID = 491218) OR (GEO_GSMID = 491221) OR (GEO_GSMID = 491238) OR (GEO_GSMID = 491234) OR (GEO_GSMID = 491252) OR (GEO_GSMID = 491262) OR (GEO_GSMID = 491222) OR (GEO_GSMID = 491258) OR (GEO_GSMID = 491263) OR (GEO_GSMID = 491214) OR (GEO_GSMID = 491241) OR (GEO_GSMID = 491245) OR (GEO_GSMID = 491264) OR (GEO_GSMID = 491212) OR (GEO_GSMID = 491244) OR (GEO_GSMID = 491227) OR (GEO_GSMID = 491249) OR (GEO_GSMID = 491216) OR (GEO_GSMID = 491210) OR (GEO_GSMID = 491232) OR (GEO_GSMID = 491254) OR (GEO_GSMID = 491261) OR (GEO_GSMID = 491253) OR (GEO_GSMID = 491269) OR (GEO_GSMID = 491257) OR (GEO_GSMID = 491220) OR (GEO_GSMID = 491267) OR (GEO_GSMID = 491250) OR (GEO_GSMID = 491259) OR (GEO_GSMID = 491246) OR (GEO_GSMID = 491247) OR (GEO_GSMID = 491228) OR (GEO_GSMID = 491224) OR (GEO_GSMID = 491215) OR (GEO_GSMID = 491248) OR (GEO_GSMID = 491229) OR (GEO_GSMID = 491280) OR (GEO_GSMID = 491281) OR (GEO_GSMID = 491282) OR (GEO_GSMID = 491283) OR (GEO_GSMID = 491284) OR (GEO_GSMID = 491285) OR (GEO_GSMID = 491175) OR (GEO_GSMID = 491286) OR (GEO_GSMID = 491287) OR (GEO_GSMID = 491176) OR (GEO_GSMID = 491177) OR (GEO_GSMID = 491178) OR (GEO_GSMID = 491179) OR (GEO_GSMID = 491180) OR (GEO_GSMID = 491274) OR (GEO_GSMID = 491288) OR (GEO_GSMID = 491277) OR (GEO_GSMID = 491181) OR (GEO_GSMID = 491203) OR (GEO_GSMID = 491182) OR (GEO_GSMID = 491183) OR (GEO_GSMID = 491184) OR (GEO_GSMID = 491185) OR (GEO_GSMID = 491273) OR (GEO_GSMID = 491186) OR (GEO_GSMID = 491187) OR (GEO_GSMID = 491275) OR (GEO_GSMID = 491188) OR (GEO_GSMID = 491272) OR (GEO_GSMID = 491189) OR (GEO_GSMID = 491190) OR (GEO_GSMID = 491191) OR (GEO_GSMID = 491192) OR (GEO_GSMID = 491193) OR (GEO_GSMID = 491194) OR (GEO_GSMID = 491195) OR (GEO_GSMID = 491278) OR (GEO_GSMID = 491196) OR (GEO_GSMID = 491289) OR (GEO_GSMID = 491271) OR (GEO_GSMID = 491276) OR (GEO_GSMID = 491197) OR (GEO_GSMID = 491279) OR (GEO_GSMID = 491198) OR (GEO_GSMID = 491199) OR (GEO_GSMID = 491270) OR (GEO_GSMID = 491200) OR (GEO_GSMID = 491201) OR (GEO_GSMID = 491202)) AND ((RFS IS NOT NULL )) ) ORDER BY GEO_GSE_reference_series, site_prefix, GEO_platform_ID, biopsy_postTrt_days&quot;
+## [1] &quot;total number of samples is:&quot;
+## [1] 115
+## [1] &quot;current starting index is:&quot;
+## [1] 1
+## GSE ID is:  19615 
+## platform is:  GPL570 
+## site prefix is  NA 
+## treat_days are:  0[1] &quot;probe table is:&quot;
+## [1] &quot;probes_GSE19615_GPL570_allSites&quot;
+## successfully downloaded expression values for this sub-cohort 19615_GPL570_NA[1] 19615
+## [1] &quot;current class is:&quot;
+##   [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 0 1 1 1 1 1
+##  [36] 1 1 1 1 1 1 1 1 1 0 1 0 1 1 0 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+##  [71] 1 1 0 0 1 1 1 0 1 0 1 1 1 1 1 1 0 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+## [106] 1 1 1 1 0 1 1 1 1 1
+## attr(,&quot;levels&quot;)
+## [1] &quot;0&quot; &quot;1&quot;
+## [1] &quot;length of keys is:&quot;
+## [1] 54696
+## [1] &quot;dim of expr is:&quot;
+## [1] 54696   115
+## all dataset names are:  GSE19615_GPL570
+</code></pre>
+
+<pre><code class="r">
+data &lt;- data$allDataSets[[1]]
+
+expr &lt;- data$expr
+keys &lt;- data$keys
+probes &lt;- data$probes
+class &lt;- data$class
+</code></pre>
+
+<p>Now this time, I just need to run the PAMR package. PAMR creates a class prediction model based on nearest shrunken centroids. The model output is weights for both 0 and 1 for each gene.  You can run adaptthresh() to find the appropriate shrunken threshold; the paper says it used 2 (although when I ran adaptthresh out of curiosity, the lowest error was around 3!)</p>
+
+<pre><code class="r">library(&quot;pamr&quot;)
+</code></pre>
+
+<pre><code>## Loading required package: cluster
+</code></pre>
+
+<pre><code>## Warning: package &#39;cluster&#39; was built under R version 2.15.1
+</code></pre>
+
+<pre><code>## Loading required package: survival
+</code></pre>
+
+<pre><code>## Loading required package: splines
+</code></pre>
+
+<pre><code class="r">
+# nice package bc also lets you do knnimpute on missing data. set up list
+# of expression and class labels for pamr package nice...looks like we can
+# use &gt;2 groups?
+
+# expr rownames already probes. want this, as publication&#39;s PAM score list
+# is by probe, not gene symbol. need to specify this with geneids or else
+# it yells at you! had to find in a forum...
+data &lt;- list(x = expr, y = class, geneids = rownames(expr))
+
+
+# publication let threshold/&#39;shrinkage parameter delta&#39; = 2
+train &lt;- pamr.train(data = data, ngroup.survival = 2, threshold = 2)
+</code></pre>
+
+<pre><code>## 1
+</code></pre>
+
+<pre><code class="r">train_noThresh &lt;- pamr.train(data = data, ngroup.survival = 2)
+</code></pre>
+
+<pre><code>## 123456789101112131415161718192021222324252627282930
+</code></pre>
+
+<pre><code class="r"># try with, and without, adaptthresh
+adaptthresh &lt;- pamr.adaptthresh(object = train_noThresh, ntries = 10)
+</code></pre>
+
+<pre><code>## Initial errors:  6.233 14.267 Roc 188.7 
+## Update 1 
+## 123456789101112131415161718192021222324252627282930
+## Errors  6.867 13.400 Roc 190.5 
+## Update 2 
+## 123456789101112131415161718192021222324252627282930
+## Errors  7.267 12.500 Roc 188.7 
+## Update 3 
+## 123456789101112131415161718192021222324252627282930
+## Errors  7.667 12.033 Roc 189.7 
+## Update 4 
+## 123456789101112131415161718192021222324252627282930
+## Errors  7.867 11.700 Roc 190.6 
+## Update 5 
+## 123456789101112131415161718192021222324252627282930
+## Errors  7.967 11.733 Roc 192.8 
+## Update 6 
+## 123456789101112131415161718192021222324252627282930
+## Errors  8.033 11.867 Roc 196.3 
+## Update 7 
+## 123456789101112131415161718192021222324252627282930
+## Errors  7.933 12.167 Roc 200.7 
+## Update 8 
+## 123456789101112131415161718192021222324252627282930
+## Errors  7.933 12.567 Roc 206 
+## Update 9 
+## 123456789101112131415161718192021222324252627282930
+## Errors  7.933 12.933 Roc 211.7 
+## Update 10 
+## 123456789101112131415161718192021222324252627282930
+## Errors  7.90 13.23 Roc 215.7
+</code></pre>
+
+<pre><code class="r">
+train2 &lt;- pamr.train(data = data, ngroup.survival = 2, threshold.scale = adaptthresh)
+</code></pre>
+
+<pre><code>## 123456789101112131415161718192021222324252627282930
+</code></pre>
+
+<pre><code class="r">
+# paper says used CV of 10.
+results &lt;- pamr.cv(fit = train, data = data, nfold = 10)
+</code></pre>
+
+<pre><code>## 12Fold 1 :1
+## Fold 2 :1
+## Fold 3 :1
+## Fold 4 :1
+## Fold 5 :1
+## Fold 6 :1
+## Fold 7 :1
+## Fold 8 :1
+## Fold 9 :1
+## Fold 10 :1
+</code></pre>
+
+<pre><code class="r"># I WOULD use results2 in my final analysis with the optimal threshold if
+# I wasn&#39;t trying to match the paper.
+results2 &lt;- pamr.cv(fit = train2, data = data, nfold = 10)
+</code></pre>
+
+<pre><code>## 12Fold 1 :123456789101112131415161718192021222324252627282930
+## Fold 2 :123456789101112131415161718192021222324252627282930
+## Fold 3 :123456789101112131415161718192021222324252627282930
+## Fold 4 :123456789101112131415161718192021222324252627282930
+## Fold 5 :123456789101112131415161718192021222324252627282930
+## Fold 6 :123456789101112131415161718192021222324252627282930
+## Fold 7 :123456789101112131415161718192021222324252627282930
+## Fold 8 :123456789101112131415161718192021222324252627282930
+## Fold 9 :123456789101112131415161718192021222324252627282930
+## Fold 10 :123456789101112131415161718192021222324252627282930
+</code></pre>
+
+<pre><code class="r">
+# not directly related, but I tried to used their FDR function and it kept
+# claiming some data wasn missing. FDR_thresh &lt;- pamr.fdr(trained.obj =
+# train, data = data, nperms=100) FDR_thresh2 &lt;- pamr.fdr(trained.obj =
+# train2, data = data, nperms=100) got an error: try w/o threshold = 2?
+# Error in dimnames(results) &lt;- list(NULL, c(&#39;Threshold&#39;, &#39;Number of
+# significant genes&#39;, : &#39;dimnames&#39; applied to non-array
+
+
+# get genes that survive thresholding keep the row names (gene symbol
+# names) If ﬁtcv is provided, the function also reports the average rank
+# of the gene in the cross-validation folds
+gene_list &lt;- pamr.listgenes(fit = train, data = data, threshold = 2, fitcv = results, 
+    genenames = TRUE)
+</code></pre>
+
+<pre><code>##        id           0-score 1-score av-rank-in-CV prop-selected-in-CV
+##   [1,] 206166_s_at  0.3918  -0.0543 3.5           1                  
+##   [2,] 235599_at    0.348   -0.0482 17.4          1                  
+##   [3,] 243200_at    0.298   -0.0413 160.9         0.9                
+##   [4,] 1554712_a_at 0.2923  -0.0405 10.9          1                  
+##   [5,] 225459_at    0.2617  -0.0363 19.9          1                  
+##   [6,] 1554906_a_at 0.2589  -0.0359 61.4          0.9                
+##   [7,] 217528_at    0.2554  -0.0354 28.9          1                  
+##   [8,] 206165_s_at  0.2413  -0.0335 39.8          1                  
+##   [9,] 203059_s_at  0.2325  -0.0322 22.2          1                  
+##  [10,] 227811_at    -0.232  0.0322  20            1                  
+##  [11,] 242342_at    0.2277  -0.0316 63.8          0.9                
+##  [12,] 206164_at    0.2262  -0.0314 54.7          0.9                
+##  [13,] 237496_at    0.2174  -0.0301 38.9          1                  
+##  [14,] 224180_x_at  0.2067  -0.0287 34.9          1                  
+##  [15,] 1552378_s_at 0.1877  -0.026  36.7          1                  
+##  [16,] 211148_s_at  0.1876  -0.026  34.8          1                  
+##  [17,] 211814_s_at  0.1853  -0.0257 39.9          1                  
+##  [18,] 218571_s_at  -0.1851 0.0257  35.7          1                  
+##  [19,] 233025_at    0.1844  -0.0256 98.7          0.9                
+##  [20,] 211273_s_at  0.1803  -0.025  37.7          1                  
+##  [21,] 210571_s_at  0.1784  -0.0247 99.1          0.9                
+##  [22,] 212777_at    0.177   -0.0245 30            1                  
+##  [23,] 206510_at    0.1649  -0.0229 68.8          1                  
+##  [24,] 209591_s_at  0.1635  -0.0227 44.4          1                  
+##  [25,] 228523_at    0.1629  -0.0226 55.2          1                  
+##  [26,] 219505_at    -0.1623 0.0225  45.7          1                  
+##  [27,] 239006_at    0.158   -0.0219 115.4         0.8                
+##  [28,] 1554640_at   0.1485  -0.0206 56.4          1                  
+##  [29,] 226789_at    -0.1417 0.0196  64.6          1                  
+##  [30,] 238045_at    0.1384  -0.0192 60            1                  
+##  [31,] 228610_at    0.1365  -0.0189 180.8         0.9                
+##  [32,] 218572_at    -0.1331 0.0185  66.9          1                  
+##  [33,] 218541_s_at  -0.1312 0.0182  60.5          1                  
+##  [34,] 204914_s_at  0.1299  -0.018  77.5          1                  
+##  [35,] 201942_s_at  0.1287  -0.0178 100.7         0.9                
+##  [36,] 224311_s_at  0.1265  -0.0175 71.7          1                  
+##  [37,] 205034_at    0.1247  -0.0173 70            1                  
+##  [38,] 206582_s_at  0.1242  -0.0172 98.8          1                  
+##  [39,] 222758_s_at  0.1135  -0.0157 101           1                  
+##  [40,] 227467_at    0.1117  -0.0155 85.7          0.9                
+##  [41,] 225811_at    -0.1101 0.0153  121.2         0.9                
+##  [42,] 230316_at    -0.109  0.0151  75.9          1                  
+##  [43,] 204913_s_at  0.1022  -0.0142 120           0.9                
+##  [44,] 213539_at    -0.0999 0.0139  131.4         0.9                
+##  [45,] 202357_s_at  -0.0985 0.0137  139.8         0.8                
+##  [46,] 213217_at    0.0979  -0.0136 143.6         0.9                
+##  [47,] 201287_s_at  0.0972  -0.0135 86.5          1                  
+##  [48,] 223484_at    -0.0949 0.0132  168.9         0.9                
+##  [49,] 219270_at    0.0945  -0.0131 279.6         0.9                
+##  [50,] 223125_s_at  -0.0932 0.0129  136.3         1                  
+##  [51,] 205376_at    -0.0925 0.0128  110.1         1                  
+##  [52,] 34210_at     -0.0924 0.0128  156.8         0.8                
+##  [53,] 200814_at    -0.0914 0.0127  115.2         0.9                
+##  [54,] 221087_s_at  -0.0913 0.0127  164.6         0.8                
+##  [55,] 1553436_at   0.0908  -0.0126 388.6         0.7                
+##  [56,] 201943_s_at  0.0899  -0.0125 149           0.9                
+##  [57,] 204856_at    0.0859  -0.0119 270           0.8                
+##  [58,] 233825_s_at  -0.0835 0.0116  147.7         0.9                
+##  [59,] 214370_at    0.0812  -0.0113 250.9         0.7                
+##  [60,] 206511_s_at  0.0804  -0.0111 180.7         0.9                
+##  [61,] 220953_s_at  0.0797  -0.0111 207           0.8                
+##  [62,] 204915_s_at  0.0782  -0.0108 159.6         0.9                
+##  [63,] 214583_at    0.0781  -0.0108 177.5         0.9                
+##  [64,] 244644_at    0.0778  -0.0108 274.3         0.8                
+##  [65,] 231484_at    0.0777  -0.0108 335.3         0.7                
+##  [66,] 204949_at    -0.0771 0.0107  144.8         0.9                
+##  [67,] 220253_s_at  0.0761  -0.0105 191.8         0.8                
+##  [68,] 206533_at    0.0756  -0.0105 157.2         0.7                
+##  [69,] 235548_at    0.0754  -0.0105 224.5         0.8                
+##  [70,] 225945_at    -0.0738 0.0102  186.2         0.8                
+##  [71,] 227758_at    -0.0734 0.0102  159           0.9                
+##  [72,] 218553_s_at  0.0727  -0.0101 130.9         1                  
+##  [73,] 206837_at    0.0722  -0.01   240.5         0.7                
+##  [74,] 219359_at    -0.0704 0.0098  133.9         0.9                
+##  [75,] 219121_s_at  0.07    -0.0097 150.7         0.8                
+##  [76,] 232573_at    0.0687  -0.0095 205           0.8                
+##  [77,] 203904_x_at  0.0683  -0.0095 157.8         0.9                
+##  [78,] 209590_at    0.0682  -0.0094 216.4         0.9                
+##  [79,] 205590_at    -0.0679 0.0094  223.9         0.7                
+##  [80,] 203220_s_at  0.0672  -0.0093 358.5         0.9                
+##  [81,] 214697_s_at  0.0656  -0.0091 154.6         0.8                
+##  [82,] 236351_at    0.065   -0.009  304.7         0.7                
+##  [83,] 213926_s_at  0.0649  -0.009  156.4         0.9                
+##  [84,] 221029_s_at  0.0647  -0.009  402.1         0.8                
+##  [85,] 227884_at    0.0629  -0.0087 198           0.9                
+##  [86,] 201940_at    0.0621  -0.0086 222.7         0.9                
+##  [87,] 238480_at    -0.0595 0.0082  164.4         0.7                
+##  [88,] 204541_at    -0.0595 0.0082  145.8         1                  
+##  [89,] 229085_at    0.0578  -0.008  463.7         0.8                
+##  [90,] 219631_at    0.0567  -0.0079 188.5         0.7                
+##  [91,] 204735_at    -0.0566 0.0078  170.3         1                  
+##  [92,] 218905_at    0.0563  -0.0078 208.4         0.7                
+##  [93,] 211478_s_at  0.0547  -0.0076 319.1         0.8                
+##  [94,] 218921_at    -0.0531 0.0074  203.3         0.8                
+##  [95,] 211194_s_at  0.0516  -0.0071 524.6         0.9                
+##  [96,] 227582_at    -0.0506 0.007   336.8         0.7                
+##  [97,] 231513_at    0.05    -0.0069 218           0.8                
+##  [98,] 211078_s_at  0.0492  -0.0068 324.6         0.8                
+##  [99,] 226810_at    -0.049  0.0068  263           0.8                
+## [100,] 241342_at    0.0483  -0.0067 224.8         0.7                
+## [101,] 227940_at    0.0481  -0.0067 223.5         0.7                
+## [102,] 235391_at    0.0478  -0.0066 187.6         0.9                
+## [103,] 243918_at    0.0459  -0.0064 272.9         0.8                
+## [104,] 225407_at    -0.0451 0.0063  220           0.8                
+## [105,] 213035_at    -0.0443 0.0061  211.4         1                  
+## [106,] 213959_s_at  0.0442  -0.0061 281.3         0.7                
+## [107,] 220622_at    0.0426  -0.0059 1061.3        0.7                
+## [108,] 211981_at    0.042   -0.0058 259.9         0.8                
+## [109,] 209394_at    -0.0415 0.0058  253.8         0.7                
+## [110,] 226446_at    0.04    -0.0055 330.6         0.7                
+## [111,] 228763_at    -0.0396 0.0055  195.1         0.9                
+## [112,] 235205_at    0.0396  -0.0055 335.2         0.8                
+## [113,] 204818_at    0.0386  -0.0053 728.3         0.7                
+## [114,] 230323_s_at  0.0384  -0.0053 609           0.7                
+## [115,] 214811_at    0.0366  -0.0051 831.8         0.8                
+## [116,] 212611_at    0.0352  -0.0049 423.9         0.6                
+## [117,] 210117_at    0.0348  -0.0048 448.5         0.5                
+## [118,] 202316_x_at  0.0346  -0.0048 288.5         0.8                
+## [119,] 1557239_at   0.034   -0.0047 312.9         0.7                
+## [120,] 218747_s_at  -0.0333 0.0046  251.8         0.7                
+## [121,] 238467_at    0.033   -0.0046 271.8         0.9                
+## [122,] 207223_s_at  0.0329  -0.0046 280.3         0.7                
+## [123,] 202531_at    -0.0328 0.0045  310.1         0.6                
+## [124,] 221666_s_at  -0.0327 0.0045  290.8         0.5                
+## [125,] 220128_s_at  0.0327  -0.0045 451.1         0.7                
+## [126,] 223126_s_at  -0.0317 0.0044  271.2         0.8                
+## [127,] 229689_s_at  0.0303  -0.0042 461.3         0.8                
+## [128,] 227265_at    -0.0303 0.0042  351.1         0.6                
+## [129,] 201522_x_at  -0.0296 0.0041  398.6         0.7                
+## [130,] 220225_at    0.0292  -0.0041 600.4         0.8                
+## [131,] 1555964_at   0.0292  -0.004  393.6         0.7                
+## [132,] 1554245_x_at 0.0285  -0.004  496.7         0.7                
+## [133,] 1555716_a_at 0.0276  -0.0038 440.8         0.7                
+## [134,] 225534_at    -0.0275 0.0038  288.7         0.8                
+## [135,] 209948_at    0.0274  -0.0038 368.9         0.6                
+## [136,] 206307_s_at  0.0264  -0.0037 554.6         0.7                
+## [137,] 230793_at    0.0263  -0.0036 335.3         0.7                
+## [138,] 209772_s_at  0.0258  -0.0036 245.1         0.7                
+## [139,] 232279_at    -0.0255 0.0035  258.3         0.6                
+## [140,] 210915_x_at  -0.0253 0.0035  340.9         0.6                
+## [141,] 216294_s_at  0.0248  -0.0034 401.1         0.6                
+## [142,] 203571_s_at  -0.0246 0.0034  307.6         0.6                
+## [143,] 233713_at    0.0244  -0.0034 255.6         0.7                
+## [144,] 226226_at    0.0243  -0.0034 1005.6        0.7                
+## [145,] 241763_s_at  0.0241  -0.0033 390.2         0.6                
+## [146,] 237301_at    -0.0223 0.0031  260.4         0.9                
+## [147,] 206079_at    0.0222  -0.0031 422.3         0.6                
+## [148,] 239586_at    0.0215  -0.003  1258.4        0.8                
+## [149,] 205503_at    0.0213  -0.0029 333.8         0.7                
+## [150,] 226473_at    0.0205  -0.0028 250.8         0.7                
+## [151,] 208650_s_at  0.0199  -0.0028 268           0.6                
+## [152,] 224451_x_at  -0.0198 0.0028  312.2         0.6                
+## [153,] 235247_at    0.0188  -0.0026 1412.7        0.7                
+## [154,] 203100_s_at  0.0179  -0.0025 263.4         0.7                
+## [155,] 216557_x_at  -0.0178 0.0025  301.9         0.6                
+## [156,] 233446_at    0.0176  -0.0024 400           0.6                
+## [157,] 205236_x_at  0.0171  -0.0024 443.8         0.5                
+## [158,] 203779_s_at  0.0164  -0.0023 615.3         0.6                
+## [159,] 202874_s_at  0.0161  -0.0022 382.6         0.6                
+## [160,] 222379_at    -0.0161 0.0022  285.5         0.6                
+## [161,] 203616_at    -0.016  0.0022  326.3         0.6                
+## [162,] 207933_at    0.0153  -0.0021 835.2         0.8                
+## [163,] 229656_s_at  0.0153  -0.0021 367.5         0.7                
+## [164,] 244272_s_at  0.0152  -0.0021 522           0.7                
+## [165,] 226191_at    0.015   -0.0021 305.7         0.7                
+## [166,] 216375_s_at  0.0149  -0.0021 662.8         0.8                
+## [167,] 211796_s_at  -0.0143 0.002   399.6         0.6                
+## [168,] 36553_at     -0.0142 0.002   333.6         0.5                
+## [169,] 214581_x_at  0.0142  -0.002  325.2         0.5                
+## [170,] 204537_s_at  0.0141  -0.002  452.5         0.6                
+## [171,] 205307_s_at  0.0137  -0.0019 1123.1        0.7                
+## [172,] 208153_s_at  0.0129  -0.0018 678.1         0.7                
+## [173,] 213562_s_at  0.0124  -0.0017 371           0.7                
+## [174,] 225801_at    0.0122  -0.0017 579.3         0.8                
+## [175,] 217077_s_at  0.0121  -0.0017 525.4         0.7                
+## [176,] 212998_x_at  -0.0119 0.0017  362.4         0.6                
+## [177,] 212531_at    0.0109  -0.0015 554.8         0.5                
+## [178,] 209341_s_at  -0.0109 0.0015  428.7         0.6                
+## [179,] 226568_at    -0.0102 0.0014  347.9         0.6                
+## [180,] 205258_at    0.0095  -0.0013 586.1         0.8                
+## [181,] 238710_at    0.0092  -0.0013 829.7         0.8                
+## [182,] 227742_at    -0.0091 0.0013  325.4         0.5                
+## [183,] 213540_at    -0.0091 0.0013  376.1         0.6                
+## [184,] 222699_s_at  0.0086  -0.0012 412.3         0.4                
+## [185,] 212070_at    0.008   -0.0011 356.4         0.6                
+## [186,] 203222_s_at  0.0079  -0.0011 433.7         0.6                
+## [187,] 218092_s_at  0.0075  -0.001  334.4         0.7                
+## [188,] 220254_at    0.007   -0.001  415.2         0.6                
+## [189,] 242447_at    0.0063  -9e-04  486.5         0.5                
+## [190,] 227232_at    -0.0063 9e-04   339.3         0.6                
+## [191,] 202768_at    -0.0062 9e-04   324.4         0.5                
+## [192,] 236398_s_at  0.006   -8e-04  2895.2        0.9                
+## [193,] 204269_at    -0.006  8e-04   344           0.6                
+## [194,] 236203_at    -0.0058 8e-04   324.8         0.5                
+## [195,] 65591_at     0.0056  -8e-04  373.4         0.7                
+## [196,] 204638_at    -0.0056 8e-04   568.4         0.7                
+## [197,] 208884_s_at  0.0056  -8e-04  374.2         0.7                
+## [198,] 230391_at    -0.0053 7e-04   466.2         0.5                
+## [199,] 211812_s_at  0.0051  -7e-04  396           0.4                
+## [200,] 219355_at    0.005   -7e-04  490.6         0.7                
+## [201,] 222399_s_at  0.0049  -7e-04  337.8         0.6                
+## [202,] 217208_s_at  0.0046  -6e-04  379.4         0.7                
+## [203,] 205572_at    0.0045  -6e-04  352.6         0.5                
+## [204,] 229231_at    0.0031  -4e-04  341.6         0.6                
+## [205,] 205777_at    0.0027  -4e-04  463.3         0.6                
+## [206,] 234650_at    0.002   -3e-04  650.5         0.7                
+## [207,] 211430_s_at  -0.0019 3e-04   426           0.7                
+## [208,] 205787_x_at  0.0016  -2e-04  401.2         0.6                
+## [209,] 231070_at    0.0015  -2e-04  1422.5        0.8                
+## [210,] 205868_s_at  9e-04   -1e-04  363.2         0.5                
+## [211,] 213143_at    6e-04   -1e-04  856.3         0.7
+</code></pre>
+
+<p>I then read in the final published gene symbol list to see which ones matched (most of the published symbols seemed updated).</p>
+
+<pre><code class="r"># compare with truth
+truthData &lt;- read.delim(header = TRUE, &quot;~/Box Documents/Atul BC biomarkers/breastcancer/GSE19615_genelist_truth.txt&quot;)
+truthProbes &lt;- truthData[, 1]
+# do all the truth probes match those in our DB?
+length(which(!is.na(match(truthProbes, probes)))) == length(truthProbes)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<pre><code class="r">
+testProbes &lt;- gene_list[, 1]
+truthScore &lt;- truthData[, 7]
+# second column is zero-score or recurrence
+testScore &lt;- gene_list[, 2]
+
+# good - all the outputted probes are in my database careful with MATCH - may need to remove NAs if there are any. match returns indices from the SECOND objects
+testGeneSymbols &lt;- keys[match(testProbes, probes)]
+# if lengths equal, didn&#39;t lost any probes because weren&#39;t recognized in my DB
+length(testProbes) == length(testGeneSymbols)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<pre><code class="r">
+# get the full list of updated gene symbols from my DB corresponding to publication&#39;s list use probes to link to gene symbols
+truthGeneSymbols &lt;- keys[match(truthProbes, probes)]
+
+# make sure lengths match - i.e. all our probes are in the DB.
+length(truthGeneSymbols) == length(truthProbes)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<pre><code class="r">
+# we have 211 gene from my DB, 114 genes from the publication,
+length(testGeneSymbols)
+</code></pre>
+
+<pre><code>## [1] 211
+</code></pre>
+
+<pre><code class="r">length(truthGeneSymbols)
+</code></pre>
+
+<pre><code>## [1] 114
+</code></pre>
+
+<pre><code class="r">
+# a few probes in the publication don&#39;t link to an identifiable gene symbol (haha now I know why they only printed the probes and not the gene symbol!) same for the test group: in this analysis, because it&#39;s by probe, I didn&#39;t remove NA gene symbols.
+which(is.na(truthGeneSymbols))
+</code></pre>
+
+<pre><code>## [1]  5  9 20 52 85
+</code></pre>
+
+<pre><code class="r">which(is.na(testGeneSymbols))
+</code></pre>
+
+<pre><code>##  [1]   2   3  11  13  41  65  76  82  97 101 103 112 121 127 143 146 153 165 174 192 198 206
+</code></pre>
+
+<p>I only got 58 probes matcheda against the published dataset.  Some are still NAs - meaning the probes matched up, but there&#39;s no concordant gene symbol.</p>
+
+<pre><code class="r"># NOTE: there are extra gene symbols matching up probably due to the NAs, and perhaps a few duplicated probes leading to the same gene symbol.
+length(which(!is.na(match(truthGeneSymbols, testGeneSymbols))))
+</code></pre>
+
+<pre><code>## [1] 68
+</code></pre>
+
+<pre><code class="r">length(which(!is.na(match(truthProbes, testProbes))))
+</code></pre>
+
+<pre><code>## [1] 58
+</code></pre>
+
+<pre><code class="r">
+matchingIndices &lt;- match(truthProbes, testProbes)
+matchingIndices &lt;- matchingIndices[-which(is.na(matchingIndices))]
+matchingIndicesTruth &lt;- match(testProbes, truthProbes)
+matchingIndicesTruth &lt;- matchingIndicesTruth[-which(is.na(matchingIndicesTruth))]
+
+matchingGenes &lt;- testGeneSymbols[matchingIndices]
+
+cat(&quot;our matching 58 genes are: &quot;, &quot;\n&quot;, matchingGenes, &quot;\n&quot;)
+</code></pre>
+
+<pre><code>## our matching 58 genes are:  
+##  CLCA2 CLCA2 CLCA2 CLCA2 S100A8 C1orf21 NA SOX11 SOX11 SDC1 SOS1 CAB39 B3GALNT1 IRX4 CMAHP TNFRSF21 CD24 ZNF655 C8orf4 C8orf40 RDH10 ESRP1 INTS8 CCNE2 CCNE2 PLEKHF2 NA ATP6V1C1 TLE1 PALM2 PTBP3 C10orf116 PAPSS2 TM9SF3 NANOS1 ATHL1 TMEM86A GLYATL2 TMEM132A TMEM45B COL4A1 PSME1 CHMP4A CHMP4A MDP1 NA GPR56 CPD CPD CPD TTC39C ICAM3 PDE4A KCTD15 BMP7 CECR1 SEC14L2 SEC14L2
+</code></pre>
+
+<p>PAMR uses a random seed, and I also probably normalized slightly differently&hellip;BUT it turns out there are a ton of duplicated probes in both datasets- 49 in mine, 28 in the published/truth set. But there are only 11 matched genes in the final list, so the 58 exact matches start to sound reasonable. We&#39;re reallyonly trying to match 114-28=86 unique genes in the original datbase.</p>
+
+<pre><code class="r">length(which(duplicated(testGeneSymbols) == TRUE))
+</code></pre>
+
+<pre><code>## [1] 49
+</code></pre>
+
+<pre><code class="r">length(which(duplicated(truthGeneSymbols) == TRUE))
+</code></pre>
+
+<pre><code>## [1] 28
+</code></pre>
+
+<pre><code class="r">length(which(duplicated(matchingGenes) == TRUE))
+</code></pre>
+
+<pre><code>## [1] 11
+</code></pre>
+
+<p>I then pulled out the corresponding scores and put it into an excel file (also on Central Desktop- GSE19615_errorCheckOutput.xls)</p>
+
+<pre><code class="r"># get the corresponding scores from test to put alongside the truth scores
+testScoreMatches &lt;- testScore[matchingIndices]
+testProbeMatches &lt;- testProbes[matchingIndices]
+
+truthScoreMatches &lt;- truthScore[matchingIndicesTruth]
+# fudging a bit - using the matching gene symbol indices because the duplicated probes are causing an issue
+truthProbeMatches &lt;- truthProbes[matchingIndicesTruth]
+</code></pre>
+
+<p>58/114 isn&#39;t perfect, but I&#39;m also looking to see if I followed PAMR exactly. The paper claims &ldquo;genes were selected at a false discovery threshold of that minimized a 10-fold cross-validation and test errors near the shrinkage parameter delta =2.&rdquo; So theoretically, doing the 10-fold CV with a threshold of 2 should get me at <em>least</em> their gene list of about 120 genes, even if I didn&#39;t do the FDR threshold&hellip;this was not the case.  But many gene symbols were also repeated in the list, so it&#39;s a little difficult to tell if digging further with get me much more.  At least the results are in general concordant and not completely off the wall, which would indicate my automated database processing had a major bug in it somewhere.</p>
+
+<p>Next step:  whenever I run an analysis, I just need to make sure my gene symbols look intuitive - have most of them appeared in publications before?</p>
+
+</body>
+
+</html>
+
