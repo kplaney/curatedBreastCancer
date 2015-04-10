@@ -1,0 +1,5 @@
+export(processExpressionSetList, processExpressionSet,filterAndImputeSamples ,collapseDupProbes,removeDuplicatedPatients, filterGenesByVariance)
+import(XML, Biobase, BiocStyle)
+importFrom(ggplot2, ggplot, ggsave, geom_histogram, aes,labs)
+importFrom(impute, impute.knn)
+
