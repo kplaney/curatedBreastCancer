@@ -1,1 +1,4 @@
-(no news yet - version 0.99.0)
+2016 V2: Added protocolData slot so passes validObject() Bioconductor 
+checks. Also fixed a small data frame vs matrix bug that caused the code to 
+stop during processing (if the bug occurs, the code broke - i.e. it does not 
+silently produce the error without the user knowing.)

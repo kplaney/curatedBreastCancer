@@ -215,7 +215,7 @@ samples are now the columns for an pxn matrix.")
   keysOrig <-study$keys
   numPatients <- dim(expr)[2]
   
-  if(is.null(expr) || is.null(keysOrig) || all(is.na(expr)) || 
+  if(is.null(expr) || is.null(keysOrig) || all(is.na(expr)) ||  
      all(is.na(keysOrig))){
     
     stop("you didn't provide the right expr or keys keyword 

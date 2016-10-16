@@ -6,7 +6,7 @@ Date: 2016-10-15
 Author: Katie Planey
 Maintainer: Katie Planey <katie.planey@gmail.com>
 Depends: R (>= 3.0.0), ggplot2, impute, XML, Biobase, BiocStyle
+Imports: methods
 biocViews: GeneExpression, Microarray, ExperimentData
 Description: Curated human breast cancer tissue S4 ExpresionSet datasets that all contain at least one type of outcomes variable and treatment information (minimum level: whether they had chemotherapy and whether they had hormonal therapy).  Includes code to post-process these datasets.
 License: GPL (>= 2)
-Packaged: 2016-10-15 06:12:41 UTC; catherineplaney

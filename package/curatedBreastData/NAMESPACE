@@ -2,4 +2,6 @@ export(processExpressionSetList, processExpressionSet,filterAndImputeSamples ,co
 import(XML, Biobase, BiocStyle)
 importFrom(ggplot2, ggplot, ggsave, geom_histogram, aes,labs)
 importFrom(impute, impute.knn)
+importFrom("methods", "validObject")
+importFrom("stats", "cov", "median", "na.omit", "quantile", "var")
 
