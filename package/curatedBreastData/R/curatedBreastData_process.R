@@ -1,6 +1,7 @@
 
 processExpressionSetList <- function(exprSetList,outputFileDirectory="./",
-                                     numTopVarGenes,minVarPercentile,maxVarPercentile=1,minVar){
+                                     numTopVarGenes,minVarPercentile,
+                                     maxVarPercentile=1,minVar){
   
   outputFile = paste0(outputFileDirectory,
                       "/curatedBreastData_processExpressionSetMessages.txt")
@@ -181,8 +182,10 @@ pheno and feature slots.\n Proceed through data analysis with caution!")
     return(exprSet)
 
 }
-#fractionGeneNAcutoff:  max fraction of NAs allowed for a certain gene across all samples.
-#fractionSampleNAcutoff: max fraction of NAs allowed for a certain sample across all genes.
+#fractionGeneNAcutoff:  max fraction of NAs allowed for 
+#a certain gene across all samples.
+#fractionSampleNAcutoff: max fraction of NAs allowed for 
+#a certain sample across all genes.
 filterAndImputeSamples <- function(study,studyName = "study",
                                   outputFile = "createTestTrainSetsOutput.txt",
                                   impute=TRUE, knnFractionSize=.01,
@@ -203,7 +206,7 @@ filterAndImputeSamples <- function(study,studyName = "study",
     
     expr <- t(study[[exprIndex]])
     exprOrig <- t(study[[exprIndex]])
-    warning("dimensions of expression study will be returned transposed: 
+    message("dimensions of expression study will be returned transposed: 
 samples are now the columns for an pxn matrix.")
     
   }  
@@ -212,7 +215,8 @@ samples are now the columns for an pxn matrix.")
   keysOrig <-study$keys
   numPatients <- dim(expr)[2]
   
-  if(is.null(expr) || is.null(keysOrig) || all(is.na(expr)) || all(is.na(keysOrig))){
+  if(is.null(expr) || is.null(keysOrig) || all(is.na(expr)) || 
+     all(is.na(keysOrig))){
     
     stop("you didn't provide the right expr or keys keyword 
          for the filter genes by variance function.")
@@ -221,7 +225,7 @@ samples are now the columns for an pxn matrix.")
   
   totalGen <- dim(expr)[1]
   
-  warning("\nJust a warning: this function assumes your missing values
+  message("\nJust a note: this function assumes your missing values
   are proper NAs, not \"null\",etc.\n")
   
   gene_fractionNAsamples <- apply(expr,MARGIN=1, 
@@ -400,7 +404,7 @@ file=outputFile,append=TRUE)
     
     cat("finished imputing study ",studyName, "\n",file=outputFile,append=TRUE)
     
-    warning("no list index name for a class/outcomes given,
+    message("no list index name for a class/outcomes given,
     so this will not be returned")
     
     study <- list(expr=exprOrig,exprFilterImpute = exprFilterImpute,
@@ -460,7 +464,7 @@ collapseDupProbes <- function(expr,sampleColNames=colnames(expr),keys,
                                             "complete.obs", "na.or.complete", 
                                             "pairwise.complete.obs")){
   
-  warning("It's best to impute NA values before running this function
+  message("Note: it's best to impute NA values before running this function
 otherwise it may set averages to NA if there is 1 NA present.
 This function just removes any genes whose key is NA.")
   
@@ -509,7 +513,7 @@ This function just removes any genes whose key is NA.")
   singles.keys <- names(which(table(keys) == 1))
   singles.ind <- which(keys %in% singles.keys)
   
-  warning("\nYou may get a warning here because key names are duplicated 
+  message("\nRunning collapseDupProbes(). You may get a warning here because key names are duplicated 
   so it can't use them as row names. That's OK.\n")
   gems <- data.frame(expr = expr, keys = keys,stringsAsFactors = FALSE)
   #hmm this isn't working...but aren't all the lengths the same now???
@@ -784,14 +788,14 @@ removeDuplicatedPatients <- function(exprMatrix,
                                                   "na.or.complete", 
                                                   "pairwise.complete.obs")){
   
-  message("\nStarting with  ", ncol(exprMatrix) ,"patients.")
-  cat("\nStarting with ", ncol(exprMatrix) ,"patients. \n\n",
+  message("\nRunning removeDuplicatedPatients(): starting with  ", ncol(exprMatrix) ," patients.")
+  cat("\nStarting with ", ncol(exprMatrix) ," patients. \n\n",
       append=TRUE,file=outputFile)
   
   
   if(length(varMetric)>1){
     
-    warning("defaulting the everything variance metric.")
+    warning("Defaulting the everything variance metric because you gave more than one variance metric.")
     varMetric = c("everything")
     
   }
@@ -813,9 +817,11 @@ removeDuplicatedPatients <- function(exprMatrix,
   
   if(length(duplicated_patients)>0){
     
-    message("Found duplicated samples for ",length(duplicated_patients),
+    message("In removeDuplicatedPatients(): found duplicated samples for ",
+            length(duplicated_patients),
             "patients. There may be more than 2 samples per patient.")
-    cat("Found duplicated samples for patients ",duplicated_patients,
+    cat("In removeDuplicatedPatients(): found duplicated samples for patients ",
+        duplicated_patients,
         "patients. There may be more than 2 samples per patient.\n",
         append=TRUE,file=outputFile)
     
@@ -874,16 +880,18 @@ removeDuplicatedPatients <- function(exprMatrix,
     
     #how many samples did we lose?
     numSamplesRemove <- nSamples - ncol(exprMatrix)
-    message("removed ",numSamplesRemove, " samples from patients with 
+    message("In removeDuplicatedPatients(): removed ",numSamplesRemove, 
+    " samples from patients with 
             multiple samples. \n There are ", ncol(exprMatrix) ,"left.")
-    cat("removed ",numSamplesRemove, " samples from patients with multiple 
+    cat("In removeDuplicatedPatients(): removed ",numSamplesRemove, 
+    " samples from patients with multiple 
         samples. \n There are ", ncol(exprMatrix) ,"left. \n\n",
         append=TRUE,file=outputFile)
     
     #end of if statement.
   }else{
     
-    message("found no multiple samples from the same patient(s)")
+    message("Found no multiple samples from the same patient(s)")
     cat("found no multiple samples from the same patient(s) \n\n",
         append=TRUE,file=outputFile)
     
@@ -922,7 +930,8 @@ filterGenesByVariance <- function(study, plotSaveDir="~/",minVarPercentile,
     
     expr <- t(study[[exprIndex]]);
     
-    warning("dimensions of expression data will be returned transposed: 
+    message("In filterGenesByVariance(): dimensions of 
+    expression data will be returned transposed: 
     samples are now the columns for a pxn matrix.");
     
   }
@@ -1082,7 +1091,7 @@ filterGenesByVariance <- function(study, plotSaveDir="~/",minVarPercentile,
     #just take top X varying genes.
     if(any(is.na(geneVar))){
       
-      warning("You have NA values in your gene variances. 
+      message("In filterGenesByVariance(): you have NA values in your gene variances. 
       variances with NA values will not be considered.")
       
     }
